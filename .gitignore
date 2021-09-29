@@ -269,8 +269,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
 /idea/*
-/.idea/a52.iml
 /.idea/misc.xml
 /.idea/workspace.xml
 **/*.pyc
