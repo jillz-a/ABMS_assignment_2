@@ -14,6 +14,7 @@ from Aircraft import Aircraft
 from independent import run_independent_planner
 from prioritized import run_prioritized_planner
 from cbs import run_CBS
+import numpy.random as rnd
 
 #%% SET SIMULATION PARAMETERS
 #Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
@@ -178,18 +179,52 @@ while running:
                                          "heading": ac.heading}
         escape_pressed = map_running(map_properties, current_states, t)
         timer.sleep(visualization_speed) 
-      
+
+    gate_nodes = [97, 34, 35, 36, 98]
+    arrival_nodes = [37, 38]
+    departure_nodes = [1, 2]
+    if t==1:
+        start_nodes_and_time = []
+        # goal_nodes_and_time = []
+        for i in range(1, 20):
+            counter = 0
+            arrival_or_departure = rnd.choice(['A', 'D'])
+            spawn_time = rnd.randint(0, simulation_time)
+            if arrival_or_departure == 'A':
+                start_node = rnd.choice(arrival_nodes)
+                while [start_node, spawn_time] in start_nodes_and_time:
+                    start_node = rnd.choice(arrival_nodes)
+                    counter = counter + 1
+                    if counter >= 2:
+                        spawn_time = rnd.randint(0, simulation_time)
+                        counter = 0
+                goal_node = rnd.choice(gate_nodes)
+            if arrival_or_departure == 'D':
+                start_node = rnd.choice(gate_nodes)
+                while [start_node, spawn_time] in start_nodes_and_time:
+                    start_node = rnd.choice(gate_nodes)
+                    counter = counter + 1
+                    if counter >= 5:
+                        spawn_time = rnd.randint(0, simulation_time)
+                        counter = 0
+                goal_node = rnd.choice(departure_nodes)
+
+            ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
+            aircraft_lst.append(ac)
+            start_nodes_and_time.append([start_node, spawn_time])
+
+
     #Spawn aircraft for this timestep (use for example a random process)
-    if t == 1:    
-        ac = Aircraft(1, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(2, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
-        aircraft_lst.append(ac)
-        aircraft_lst.append(ac1)
+    # if t == 1:
+    #     ac = Aircraft(1, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+    #     ac1 = Aircraft(2, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+    #     aircraft_lst.append(ac)
+    #     aircraft_lst.append(ac1)
         
     #Do planning 
-    if planner == "Independent":     
-        if t == 1: #(Hint: Think about the condition that triggers (re)planning) 
-            run_independent_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t)
+    if planner == "Independent":
+        #(Hint: Think about the condition that triggers (re)planning)
+        run_independent_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t)
     elif planner == "Prioritized":
         run_prioritized_planner()
     elif planner == "CBS":
