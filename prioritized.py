@@ -13,26 +13,33 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority):
 
 ###################################################################
     if priority == 'first_come':
-        result = []
-        constraints = []
+        constraints = [] #[{'agent': [ac_id], 'node': [node_id], 'timestep': [timestep]},...]
+        print(constraints)
 
         for ac in aircraft_lst:
             if ac.spawntime == t:
                 ac.status = "taxiing"
                 ac.position = nodes_dict[ac.start]["xy_pos"]
 
-            if ac.status == "taxiing":
-                start_node = ac.start
-                goal_node = ac.goal
-                success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, ac.spawntime, ac.id, constraints)
+                if ac.status == "taxiing":
+                    start_node = ac.start
+                    goal_node = ac.goal
+                    success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, ac.spawntime, ac.id, constraints)
 
-                if success:
-                    ac.path_to_goal = path[1:]
-                    next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-                    ac.from_to = [path[0][0], next_node_id]
-                    print("Path AC", ac.id, ":", path)
-                else:
-                    raise Exception("No solution found for", ac.id)
+                    if success:
+                        ac.path_to_goal = path[1:]
+                        next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
+                        ac.from_to = [path[0][0], next_node_id]
+                        print("Path AC", ac.id, ":", path)
+
+                        for j in range(len(path) - 1):
+                            for i in range(len(aircraft_lst)):
+                                if not i == ac.id:
+                                    constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
+                                    constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]], 'timestep': path[j+1][1]})
+
+                    else:
+                        raise Exception("No solution found for", ac.id)
 
 
 

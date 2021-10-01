@@ -53,7 +53,7 @@ def build_constraint_table(constraints, agent):
     constraint_table = [] #[[timestep1, [(location1)]], [timestep2, [(location2)]], ...]
     for i in range(len(constraints)): #runs for how many constraints are applied
         if agent == constraints[i]['agent']:
-            constraint_table.append([constraints[i]['t_step'], constraints[i]['loc']]) #ads constraints that apply to relevant agent
+            constraint_table.append([constraints[i]['timestep'], constraints[i]['node']]) #ads constraints that apply to relevant agent
 
         else:
             constraint_table.append([-1, [(-1, -1)]]) #if no constraints for agent, add dummy values

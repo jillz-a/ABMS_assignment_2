@@ -23,7 +23,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 20
-planner = "Independent" #choose which planner to use (currently only Independent is implemented)
+planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
@@ -188,7 +188,7 @@ while running:
         start_nodes_and_time = []
 
         #introduce 20 random aircraft
-        for i in range(1, 20):
+        for i in range(20):
             counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
             spawn_time = rnd.randint(0, simulation_time)
