@@ -26,19 +26,26 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                     start_node = ac.start
                     goal_node = ac.goal
                     success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, ac.spawntime, ac.id, constraints)
-
+                    if ac.id == 0 or ac.id == 29:
+                        # print(constraints)
+                        print('Spawn time aircraft', ac.id,': ', ac.spawntime)
                     if success:
                         ac.path_to_goal = path[1:]
                         next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                         ac.from_to = [path[0][0], next_node_id]
 
                         for j in range(len(path) - 1):
-                            for i in range(len(aircraft_lst)):
+                            for i in range(len(aircraft_lst) + 1):  # Somehow a +1 fixes a colission.
                                 if not i == ac.id:
                                     constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
                                     constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]], 'timestep': path[j+1][1]})
-
                     else:
+                        # Temporary code in order to remove the node for which no path can be found. This problem occurs
+                        # when the start node at the gate is already occupied. Therefore, it does not even make sense
+                        # to start at this node.
+                        aircraft_lst.pop(aircraft_lst.index(ac))
+                        continue
+
                         raise Exception("No solution found for", ac.id)
         return constraints
 

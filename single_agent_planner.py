@@ -66,7 +66,8 @@ def build_constraint_table(constraints, agent):
         if i['agent'] != agent:
             continue
         timestep = i['timestep']
-        print(i)
+
+
         # Code regarding the edge constraints. len(i['loc']) should be larger than 1.
         if len(i['node']) != 1:
             location_lst = []       #Temporary list to store the two constraint nodes.
@@ -190,7 +191,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
             if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
                 continue
 
-            # Part 2) of the code in order to check to prevent the aircraft from going backwards.
+            # Code in order to check to prevent the aircraft from going backwards.
             path = get_path(curr)[-5:]
             path = list(dict(path))
             if child['loc'] in path:

@@ -16,6 +16,8 @@ from prioritized import run_prioritized_planner
 from cbs import run_CBS
 import numpy.random as rnd
 
+rnd.seed(8)
+
 #%% SET SIMULATION PARAMETERS
 #Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
 nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
@@ -214,7 +216,7 @@ while running:
             ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
-
+    time_end = 25
 
     #Spawn aircraft for this timestep (use for example a random process)
     # if t == 1:
