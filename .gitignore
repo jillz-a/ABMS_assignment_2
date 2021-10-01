@@ -281,7 +281,7 @@ dmypy.json
 /.idea/b11.iml
 /.vscode/settings.json
 /.vscode/*
-/.idea/ABMS_assignment_2.iml.iml
+/.idea/ABMS_assignment_2.iml
 .DS_Store
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/shelf/Uncommitted_changes_before_Update_at_1-6-2021_11_15_[Default_Changelist]/
@@ -291,3 +291,5 @@ dmypy.json
 /.idea/
 /.idea/
 
+/.idea/ABMS_assignment_2.iml
+/.idea/misc.xml
