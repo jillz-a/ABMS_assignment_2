@@ -151,8 +151,12 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     closed_list[(root['loc'], root['timestep'])] = root
     while len(open_list) > 0:
         curr = pop_node(open_list)
+        # print(get_path(curr))
         if curr['loc'] == goal_node_id and curr['timestep'] >= earliest_goal_timestep:
             return True, get_path(curr)
+
+
+
 
         # Addition of code to account for a waiting step. --------------------------------------------------------------
         child = {'loc': curr['loc'],
@@ -163,6 +167,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
 
         if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
             continue
+
 
         if (child['loc'], child['timestep']) in closed_list:
             existing_node = closed_list[(child['loc'], child['timestep'])]
@@ -183,6 +188,12 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
                     'timestep': curr['timestep'] + 0.5}
 
             if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
+                continue
+
+            # Part 2) of the code in order to check to prevent the aircraft from going backwards.
+            path = get_path(curr)[-5:]
+            path = list(dict(path))
+            if child['loc'] in path:
                 continue
 
             if (child['loc'], child['timestep']) in closed_list:

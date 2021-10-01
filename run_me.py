@@ -188,7 +188,7 @@ while running:
         start_nodes_and_time = []
 
         #introduce 20 random aircraft
-        for i in range(20):
+        for i in range(30):
             counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
             spawn_time = rnd.randint(0, simulation_time)
