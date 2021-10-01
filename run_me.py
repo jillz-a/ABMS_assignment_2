@@ -39,7 +39,7 @@ def import_layout(nodes_file, edges_file):
         - edges_file = xlsx file with edge input data
     RETURNS:
         - nodes_dict = dictionary with nodes and node properties
-        - edges_dict = dictionary with edges annd edge properties
+        - edges_dict = dictionary with edges and edge properties
         - start_and_goal_locations = dictionary with node ids for arrival runways, departure runways and gates 
     """
     gates_xy = []   #lst with (x,y) positions of gates
@@ -180,14 +180,16 @@ while running:
         escape_pressed = map_running(map_properties, current_states, t)
         timer.sleep(visualization_speed) 
 
+    #Spawning: aircraft are spawned on random gate/arrival nodes and are assigned a random departure/gate node
     gate_nodes = [97, 34, 35, 36, 98]
     arrival_nodes = [37, 38]
     departure_nodes = [1, 2]
     if t==1:
         start_nodes_and_time = []
-        # goal_nodes_and_time = []
+
+        #introduce 20 random aircraft
         for i in range(1, 20):
-            counter = 0
+            counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
             spawn_time = rnd.randint(0, simulation_time)
             if arrival_or_departure == 'A':
@@ -195,7 +197,7 @@ while running:
                 while [start_node, spawn_time] in start_nodes_and_time:
                     start_node = rnd.choice(arrival_nodes)
                     counter = counter + 1
-                    if counter >= 2:
+                    if counter >= 2: #first check other arrival node (of total 2)
                         spawn_time = rnd.randint(0, simulation_time)
                         counter = 0
                 goal_node = rnd.choice(gate_nodes)
@@ -204,7 +206,7 @@ while running:
                 while [start_node, spawn_time] in start_nodes_and_time:
                     start_node = rnd.choice(gate_nodes)
                     counter = counter + 1
-                    if counter >= 5:
+                    if counter >= 5: #first check all other gate nodes (of total 5)
                         spawn_time = rnd.randint(0, simulation_time)
                         counter = 0
                 goal_node = rnd.choice(departure_nodes)
@@ -226,7 +228,7 @@ while running:
         #(Hint: Think about the condition that triggers (re)planning)
         run_independent_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t)
     elif planner == "Prioritized":
-        run_prioritized_planner()
+        run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come')
     elif planner == "CBS":
         run_CBS()
     #elif planner == -> you may introduce other planners here

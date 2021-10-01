@@ -47,7 +47,34 @@ def heuristicFinder(graph, start_node, goal_node):
     return path, path_length
 
 
-def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time_start):
+def build_constraint_table(constraints, agent):
+    """" Builds a constraint table for a_star function based on constraints given for every agent."""
+    
+    constraint_table = [] #[[timestep1, [(location1)]], [timestep2, [(location2)]], ...]
+    for i in range(len(constraints)): #runs for how many constraints are applied
+        if agent == constraints[i]['agent']:
+            constraint_table.append([constraints[i]['t_step'], constraints[i]['loc']]) #ads constraints that apply to relevant agent
+
+        else:
+            constraint_table.append([-1, [(-1, -1)]]) #if no constraints for agent, add dummy values
+            
+    return constraint_table
+
+
+def is_constrained(curr_loc, next_loc, next_time, constraint_table):
+    """Checks whether the a constraint is broken."""
+    
+    for i in range(len(constraint_table)):
+        #check for edge constraints
+        if len(constraint_table[i][1]) == 2 and next_time == constraint_table[i][0]\
+                and (curr_loc, next_loc) == (constraint_table[i][1][0], constraint_table[i][1][1]):
+            return True
+        #check for vertex constraints
+        elif next_time == constraint_table[i][0] and next_loc == constraint_table[i][1][0]:
+            return True
+
+
+def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time_start, agent, constraints):
     # def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     """
     Single agent A* search. Time start can only be the time that an agent is at a node.
@@ -71,6 +98,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     closed_list = dict()
     earliest_goal_timestep = time_start
     h_value = heuristics[from_node_id][goal_node_id]
+    constraint_table = build_constraint_table(constraints, agent)
     root = {'loc': from_node_id, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': time_start}
     push_node(open_list, root)
     closed_list[(root['loc'], root['timestep'])] = root
@@ -85,6 +113,10 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
                     'h_val': heuristics[neighbor][goal_node_id],
                     'parent': curr,
                     'timestep': curr['timestep'] + 0.5}
+
+            if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
+                continue
+
             if (child['loc'], child['timestep']) in closed_list:
                 existing_node = closed_list[(child['loc'], child['timestep'])]
                 if compare_nodes(child, existing_node):
