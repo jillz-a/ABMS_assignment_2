@@ -5,6 +5,7 @@ Consider functions in this file as supporting functions.
 
 import heapq
 import networkx as nx
+import numpy as np
 
 def calc_heuristics(graph, nodes_dict):
     """
@@ -49,30 +50,76 @@ def heuristicFinder(graph, start_node, goal_node):
 
 def build_constraint_table(constraints, agent):
     """" Builds a constraint table for a_star function based on constraints given for every agent."""
-    
-    constraint_table = [] #[[timestep1, [(location1)]], [timestep2, [(location2)]], ...]
-    for i in range(len(constraints)): #runs for how many constraints are applied
-        if agent == constraints[i]['agent']:
-            constraint_table.append([constraints[i]['timestep'], constraints[i]['node']]) #ads constraints that apply to relevant agent
 
+    # constraint_table = [] #[[timestep1, [(location1)]], [timestep2, [(location2)]], ...]
+    # for i in range(len(constraints)): #runs for how many constraints are applied
+    #     if agent == constraints[i]['agent']:
+    #         constraint_table.append([constraints[i]['timestep'], constraints[i]['node']]) #ads constraints that apply to relevant agent
+    #
+    #     else:
+    #         constraint_table.append([-1, [(-1, -1)]]) #if no constraints for agent, add dummy values
+    #
+    # return constraint_table
+
+    constraint_table = []
+    for i in constraints:
+        if i['agent'] != agent:
+            continue
+        timestep = i['timestep']
+        print(i)
+        # Code regarding the edge constraints. len(i['loc']) should be larger than 1.
+        if len(i['node']) != 1:
+            location_lst = []       #Temporary list to store the two constraint nodes.
+            for y in range(len(i['node'])):
+                location = i['node'][y]
+                location_lst.append(location)
         else:
-            constraint_table.append([-1, [(-1, -1)]]) #if no constraints for agent, add dummy values
-            
+            location_lst = [i['node'][0]]
+        constraint_table.append([timestep, location_lst])
+
+    constraint_table = np.array(constraint_table)
+
+    # Sort array on timestep, which is the 0th index in the constraint table appends.
+    if len(constraint_table) != 0:
+        constraint_table = constraint_table[constraint_table[:, 0].argsort()]
+
     return constraint_table
+
 
 
 def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     """Checks whether the a constraint is broken."""
-    
-    for i in range(len(constraint_table)):
-        #check for edge constraints
-        if len(constraint_table[i][1]) == 2 and next_time == constraint_table[i][0]\
-                and (curr_loc, next_loc) == (constraint_table[i][1][0], constraint_table[i][1][1]):
-            return True
-        #check for vertex constraints
-        elif next_time == constraint_table[i][0] and next_loc == constraint_table[i][1][0]:
-            return True
+    #
+    # for i in range(len(constraint_table)):
+    #     #check for edge constraints
+    #     if len(constraint_table[i][1]) == 2 and next_time == constraint_table[i][0]\
+    #             and (curr_loc, next_loc) == (constraint_table[i][1][0], constraint_table[i][1][1]):
+    #         return True
+    #     #check for vertex constraints
+    #     elif next_time == constraint_table[i][0] and next_loc == constraint_table[i][1][0]:
+    #         return True
 
+
+    switch = False
+    for i in constraint_table:
+        # Code regarding vertex constraints.
+        if len(i[1])==1:
+            time_step = i[0]
+            constraint_location = i[1][0]
+            if constraint_location == next_loc and next_time == time_step:
+                return True
+        # Code regarding edge constraints.
+        if len(i[1])!=1:
+            time_step = i[0]
+            if time_step != next_time:
+                continue
+            constraint_location1 = i[1][0]
+            if curr_loc != constraint_location1:
+                continue
+            constraint_location2 = i[1][1]
+            if next_loc == constraint_location2:
+                return True
+    return switch
 
 def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time_start, agent, constraints):
     # def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
@@ -106,7 +153,28 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
         curr = pop_node(open_list)
         if curr['loc'] == goal_node_id and curr['timestep'] >= earliest_goal_timestep:
             return True, get_path(curr)
-        
+
+        # Addition of code to account for a waiting step. --------------------------------------------------------------
+        child = {'loc': curr['loc'],
+                    'g_val': curr['g_val'] + 0.5,
+                    'h_val': heuristics[curr['loc']][goal_node_id],
+                    'parent': curr,
+                    'timestep': curr['timestep'] + 0.5}
+
+        if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
+            continue
+
+        if (child['loc'], child['timestep']) in closed_list:
+            existing_node = closed_list[(child['loc'], child['timestep'])]
+            if compare_nodes(child, existing_node):
+                closed_list[(child['loc'], child['timestep'])] = child
+                push_node(open_list, child)
+        else:
+            closed_list[(child['loc'], child['timestep'])] = child
+            push_node(open_list, child)
+
+        # --------------------------------------------------------------------------------------------------------------
+
         for neighbor in nodes_dict[curr['loc']]["neighbors"]:
             child = {'loc': neighbor,
                     'g_val': curr['g_val'] + 0.5,

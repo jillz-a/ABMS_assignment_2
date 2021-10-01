@@ -82,12 +82,16 @@ class Aircraft(object):
         #Update position with rounded values
         x = xy_to[0]-xy_from[0]
         y = xy_to[1]-xy_from[1]
-        x_normalized = x / math.sqrt(x**2+y**2)
-        y_normalized = y / math.sqrt(x**2+y**2)
+        if x == 0 and y == 0:
+            x_normalized = 0
+            y_normalized = 0
+        else:
+            x_normalized = x / math.sqrt(x**2+y**2)
+            y_normalized = y / math.sqrt(x**2+y**2)
         posx = round(self.position[0] + x_normalized * distance_to_move ,2) #round to prevent errors
         posy = round(self.position[1] + y_normalized * distance_to_move ,2) #round to prevent errors
-        self.position = (posx, posy)  
-        self.get_heading(xy_from, xy_to)	
+        self.position = (posx, posy)
+        self.get_heading(xy_from, xy_to)
 
         #Check if goal is reached or if to_node is reached
         if self.position == xy_to and self.path_to_goal[0][1] == t+dt: #If with this move its current to node is reached
