@@ -233,9 +233,12 @@ while running:
     elif planner == "Prioritized":
         if t == 0:
             constraints = []
-            first_come_counter = 0
-        constraints, first_come_counter = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
-                                                                  constraints, first_come_counter)
+            prioritize_counter = 0
+        # constraints, prioritize_counter = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
+        #                                                           constraints, prioritize_counter)
+        constraints, prioritize_counter, aircraft_lst = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'shortest_path',
+                                                                  constraints, prioritize_counter)
+
     elif planner == "CBS":
         run_CBS()
     #elif planner == -> you may introduce other planners here
