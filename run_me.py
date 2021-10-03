@@ -229,10 +229,13 @@ while running:
     if planner == "Independent":
         #(Hint: Think about the condition that triggers (re)planning)
         run_independent_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t)
-    if t==0:
-        constraints = []
+
     elif planner == "Prioritized":
-        constraints = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come', constraints)
+        if t == 0:
+            constraints = []
+            first_come_counter = 0
+        constraints, first_come_counter = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
+                                                                  constraints, first_come_counter)
     elif planner == "CBS":
         run_CBS()
     #elif planner == -> you may introduce other planners here
