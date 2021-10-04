@@ -27,6 +27,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 simulation_time = 20
 numb_of_aircraft = 30
 planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
+priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
@@ -194,7 +195,7 @@ while running:
         for i in range(numb_of_aircraft):
             counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
-            spawn_time = rnd.randint(0, simulation_time)
+            spawn_time = rnd.randint(1, simulation_time)
             if arrival_or_departure == 'A':
                 start_node = rnd.choice(arrival_nodes)
                 while [start_node, spawn_time] in start_nodes_and_time:
@@ -237,8 +238,7 @@ while running:
             prioritize_counter = 0
         # constraints, prioritize_counter = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
         #                                                           constraints, prioritize_counter)
-        constraints, prioritize_counter, aircraft_lst = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
-                                                                  constraints, prioritize_counter)
+        constraints, prioritize_counter, aircraft_lst = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, constraints, prioritize_counter)
 
     elif planner == "CBS":
         run_CBS()

@@ -116,11 +116,37 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
 ####################################################################
     if priority == 'weighted':
 
-        for ac in aircraft_lst:
-            if ac.spawntime == t:
-                ac.status = "taxiing"
-                ac.position = nodes_dict[ac.start]["xy_pos"]
-                ac.weight = rnd.randint(1,400)
+        if t==1:
+            # This part of the code concerns with the individual planning of all aircraft. Only active when t=0, creation
+            # time of the aircraft.
+            lst_to_be_sorted = []
+            for ac in aircraft_lst:
+                start_node = ac.start
+                goal_node = ac.goal
+                weight = rnd.randint(1,500)
+                success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, t, ac.id, [])
+                if success:
+                    # We want the location in the aircraft_lst and the length of the independent path.
+                    lst_to_be_sorted.append([aircraft_lst.index(ac), -weight])
+                else:
+                    raise Exception("No solution found for", ac.id)
+            # Creating an array so we can utilize .argsort()
+            lst_to_be_sorted = np.array(lst_to_be_sorted)
+
+            # Sort array based on second entry of every i in the list.
+            lst_sorted = lst_to_be_sorted[lst_to_be_sorted[:, 1].argsort()]
+
+            # Sort based on the id's of the aircraft.
+            aircraft_lst_new = []
+            for element in lst_sorted:
+                index = element[0]
+                aircraft_lst_new.append(aircraft_lst[index])
+
+            aircraft_lst = aircraft_lst_new
+
+            for ac in aircraft_lst:
+                # ac.status = "taxiing"
+                # ac.position = nodes_dict[ac.start]["xy_pos"]
                 start_node = ac.start
                 goal_node = ac.goal
                 success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
@@ -129,6 +155,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                     ac.path_to_goal = path[1:]
                     next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                     ac.from_to = [path[0][0], next_node_id]
+                    test = 0
                     for j in range(len(path) - 1):
                         for i in range(len(aircraft_lst) + prioritize_counter):
                             if not i == ac.id:
@@ -143,6 +170,12 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                     prioritize_counter = prioritize_counter + 1
                     aircraft_lst.pop(aircraft_lst.index(ac))
                     continue
-                    # raise Exception("No solution found for", ac.id)
+        for ac in aircraft_lst:
+            if ac.spawntime == t:
+                ac.status = "taxiing"
 
-        pass
+                #print(nodes_dict[ac.start])
+                ac.position = nodes_dict[ac.start]["xy_pos"]
+
+        return constraints, prioritize_counter, aircraft_lst
+
