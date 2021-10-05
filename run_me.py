@@ -25,7 +25,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 20
-numb_of_aircraft = 30
+numb_of_aircraft = 15
 planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
 
@@ -188,6 +188,9 @@ while running:
     gate_nodes = [97, 34, 35, 36, 98]
     arrival_nodes = [37, 38]
     departure_nodes = [1, 2]
+    chosen_gate_nodes = [0, 0, 0, 0, 0]
+    chosen_departure_nodes = [0, 0]
+
     if t==1:
         start_nodes_and_time = []
 
@@ -196,6 +199,7 @@ while running:
             counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
             spawn_time = rnd.randint(1, simulation_time)
+
             if arrival_or_departure == 'A':
                 start_node = rnd.choice(arrival_nodes)
                 while [start_node, spawn_time] in start_nodes_and_time:
@@ -204,7 +208,11 @@ while running:
                     if counter >= 2: #first check other arrival node (of total 2)
                         spawn_time = rnd.randint(0, simulation_time)
                         counter = 0
-                goal_node = rnd.choice(gate_nodes)
+
+                goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
+                print(goal_node)
+                chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
+
             if arrival_or_departure == 'D':
                 start_node = rnd.choice(gate_nodes)
                 while [start_node, spawn_time] in start_nodes_and_time:
@@ -213,7 +221,10 @@ while running:
                     if counter >= 5: #first check all other gate nodes (of total 5)
                         spawn_time = rnd.randint(0, simulation_time)
                         counter = 0
-                goal_node = rnd.choice(departure_nodes)
+
+                goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
+                print(goal_node)
+                chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
 
             ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
             aircraft_lst.append(ac)
