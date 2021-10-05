@@ -75,42 +75,43 @@ class Aircraft(object):
         """
         
         #Determine nodes between which the ac is moving
-        from_node = self.from_to[0]
-        to_node = self.from_to[1]
-        xy_from = self.nodes_dict[from_node]["xy_pos"] #xy position of from node
-        xy_to = self.nodes_dict[to_node]["xy_pos"] #xy position of to node
-        distance_to_move = self.speed*dt #distance to move in this timestep
+        if not self.from_to[0] == 0 and not self.from_to[1] == 0:
+            from_node = self.from_to[0]
+            to_node = self.from_to[1]
+            xy_from = self.nodes_dict[from_node]["xy_pos"] #xy position of from node
+            xy_to = self.nodes_dict[to_node]["xy_pos"] #xy position of to node
+            distance_to_move = self.speed*dt #distance to move in this timestep
   
-        #Update position with rounded values
-        x = xy_to[0]-xy_from[0]
-        y = xy_to[1]-xy_from[1]
-        if x == 0 and y == 0:
-            x_normalized = 0
-            y_normalized = 0
-        else:
-            x_normalized = x / math.sqrt(x**2+y**2)
-            y_normalized = y / math.sqrt(x**2+y**2)
-        posx = round(self.position[0] + x_normalized * distance_to_move ,2) #round to prevent errors
-        posy = round(self.position[1] + y_normalized * distance_to_move ,2) #round to prevent errors
-        self.position = (posx, posy)
-        self.get_heading(xy_from, xy_to)
+            #Update position with rounded values
+            x = xy_to[0]-xy_from[0]
+            y = xy_to[1]-xy_from[1]
+            if x == 0 and y == 0:
+                x_normalized = 0
+                y_normalized = 0
+            else:
+                x_normalized = x / math.sqrt(x**2+y**2)
+                y_normalized = y / math.sqrt(x**2+y**2)
+            posx = round(self.position[0] + x_normalized * distance_to_move ,2) #round to prevent errors
+            posy = round(self.position[1] + y_normalized * distance_to_move ,2) #round to prevent errors
+            self.position = (posx, posy)
+            self.get_heading(xy_from, xy_to)
 
-        #Check if goal is reached or if to_node is reached
-        if self.position == xy_to and self.path_to_goal[0][1] == t+dt: #If with this move its current to node is reached
-            if self.position == self.nodes_dict[self.goal]["xy_pos"]: #if the final goal is reached
-                self.status = "arrived"
+            #Check if goal is reached or if to_node is reached
+            if self.position == xy_to and self.path_to_goal[0][1] == t+dt: #If with this move its current to node is reached
+                if self.position == self.nodes_dict[self.goal]["xy_pos"]: #if the final goal is reached
+                    self.status = "arrived"
 
-            else:  #current to_node is reached, update the remaining path
-                remaining_path = self.path_to_goal
-                self.path_to_goal = remaining_path[1:]
-                
-                new_from_id = self.from_to[1] #new from node
-                new_next_id = self.path_to_goal[0][0] #new to node
+                else:  #current to_node is reached, update the remaining path
+                    remaining_path = self.path_to_goal
+                    self.path_to_goal = remaining_path[1:]
 
-                if new_from_id != self.from_to[0]:
-                    self.last_node = self.from_to[0]
-                
-                self.from_to = [new_from_id, new_next_id] #update new from and to node
+                    new_from_id = self.from_to[1] #new from node
+                    new_next_id = self.path_to_goal[0][0] #new to node
+
+                    if new_from_id != self.from_to[0]:
+                        self.last_node = self.from_to[0]
+
+                    self.from_to = [new_from_id, new_next_id] #update new from and to node
 
     def plan_independent(self, nodes_dict, edges_dict, heuristics, t):
         """

@@ -205,6 +205,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
             else:
                 closed_list[(child['loc'], child['timestep'])] = child
                 push_node(open_list, child)
+
     print("No path found, "+str(len(closed_list))+" nodes visited")
     return False, [] # Failed to find solutions
 

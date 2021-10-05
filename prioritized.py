@@ -52,6 +52,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                     ac.path_to_goal = path[1:]
                     next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                     ac.from_to = [path[0][0], next_node_id]
+                    print(ac.id, ac.spawntime, ac.from_to)
                     for j in range(len(path) - 1):
                         for i in range(len(aircraft_lst) + prioritize_counter):
                             if not i == ac.id:
@@ -70,7 +71,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
             if ac.spawntime == t:
                 ac.status = "taxiing"
 
-                print(nodes_dict[ac.start])
+                #print(nodes_dict[ac.start])
                 ac.position = nodes_dict[ac.start]["xy_pos"]
         return constraints, prioritize_counter, aircraft_lst
 
@@ -149,19 +150,18 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                 # ac.position = nodes_dict[ac.start]["xy_pos"]
                 start_node = ac.start
                 goal_node = ac.goal
-                success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-                                                          ac.spawntime, ac.id, constraints)
+                success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, ac.spawntime, ac.id, constraints)
+
                 if success:
                     ac.path_to_goal = path[1:]
                     next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                     ac.from_to = [path[0][0], next_node_id]
-                    test = 0
+                    print(ac.from_to)
                     for j in range(len(path) - 1):
                         for i in range(len(aircraft_lst) + prioritize_counter):
                             if not i == ac.id:
                                 constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
-                                constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]],
-                                                    'timestep': path[j+1][1]})
+                                constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]], 'timestep': path[j+1][1]})
 
                 else:
                     # Temporary code in order to remove the node for which no path can be found. This problem occurs
