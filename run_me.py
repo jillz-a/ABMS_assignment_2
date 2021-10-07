@@ -3,6 +3,8 @@ Run-me.py is the main file of the simulation. Run this file to run the simulatio
 """
 
 import os
+
+import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -15,6 +17,7 @@ from independent import run_independent_planner
 from prioritized import run_prioritized_planner
 from cbs import run_CBS
 import numpy.random as rnd
+import math
 
 rnd.seed(8)
 
@@ -25,7 +28,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 20
-numb_of_aircraft = 15
+numb_of_aircraft = 20
 planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
 
@@ -138,6 +141,19 @@ def create_graph(nodes_dict, edges_dict, plot_graph = True):
         
     return graph
 
+def scorecounter(aircraft_lst): #Calculate score of simulation run
+    #average waiting time
+    wait_time = []
+    for aircraft in aircraft_lst:
+        wait_time.append(aircraft.waiting_time)
+    print(wait_time)
+    avg_wait_time = np.average(wait_time)
+
+    score = np.round(avg_wait_time, 3)
+
+    return score
+
+
 #%% RUN SIMULATION
 # =============================================================================
 # 0. Initialization
@@ -210,7 +226,7 @@ while running:
                         counter = 0
 
                 goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
-                print(goal_node)
+                # print(goal_node)
                 chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
 
             if arrival_or_departure == 'D':
@@ -223,7 +239,7 @@ while running:
                         counter = 0
 
                 goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
-                print(goal_node)
+                # print(goal_node)
                 chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
 
             ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
@@ -233,8 +249,8 @@ while running:
 
     #Spawn aircraft for this timestep (use for example a random process)
     # if t == 1:
-    #     ac = Aircraft(1, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-    #     ac1 = Aircraft(2, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+    #     ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+    #     ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
     #     aircraft_lst.append(ac)
     #     aircraft_lst.append(ac1)
         
@@ -247,8 +263,6 @@ while running:
         if t == 0:
             constraints = []
             prioritize_counter = 0
-        # constraints, prioritize_counter = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, 'first_come',
-        #                                                           constraints, prioritize_counter)
         constraints, prioritize_counter, aircraft_lst = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, constraints, prioritize_counter)
 
     elif planner == "CBS":
@@ -256,13 +270,27 @@ while running:
     #elif planner == -> you may introduce other planners here
     else:
         raise Exception("Planner:", planner, "is not defined.")
-                       
-    #Move the aircraft that are taxiing
+
+    #Record the amount of time an aircraft is standing still
+    if t == 1:
+        from_to_lst = [0]*numb_of_aircraft
+
+    # Move the aircraft that are taxiing
     for ac in aircraft_lst: 
         if ac.status == "taxiing": 
             ac.move(dt, t)
+            if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0:
+                if ac.from_to == from_to_lst[ac.id]:
+                    ac.waiting_time += 1
+                from_to_lst[ac.id] = ac.from_to
+                #print(from_to_lst)
+
                            
     t = t + dt
+
+    if t == time_end:
+        score = scorecounter(aircraft_lst)
+        print('Score = ', score)
           
 # =============================================================================
 # 2. Implement analysis of output data here

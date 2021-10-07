@@ -34,7 +34,8 @@ class Aircraft(object):
         self.heading = 0
         self.position = (0,0) #xy position on map
 
-        self.weight = 0 #weight given to use in prioritized planning, e.g. number of passengers
+        #cost related
+        self.waiting_time = 0
 
     def get_heading(self, xy_start, xy_next):
         """
