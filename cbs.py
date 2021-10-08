@@ -6,18 +6,31 @@ Implement CBS here
 import random
 from single_agent_planner import simple_single_agent_astar
 
+paths = []
 
+# def detect_collision(path1, path2):
+#     first_collision = []
+#
+#     for loc1 in path1:
+#         for loc2 in path2:
+#             if loc1 == loc2:  # for vertex collisions
+#                 first_collision = [loc1[0], loc1[1]]
+#
+#             elif loc1 == path2[path2.index(loc2) + 1] and loc2 == path1[path1.index(loc1) + 1]:  # for edge collisions
+#                 first_collision = [(loc1[0], loc2[0]), loc1[1]]
+
+    # return first_collision
 
 def detect_collision(path1, path2):
     first_collision = []
 
-    for loc1 in path1:
-        for loc2 in path2:
-            if loc1 == loc2:  # for vertex collisions
-                first_collision = [loc1[0], loc1[1]]
+    for i in range(len(path1)-1):
+        for j in range(len(path2)-1):
+            if path1[i+1] == path2[j+1] or path1[i] == path2[j]:  # for vertex collisions
+                first_collision = [path1[i][0], path1[i][1]]
 
-            elif loc1 == path2[path2.index(loc2) + 1] and loc2 == path1[path1.index(loc1) + 1]:  # for edge collisions
-                first_collision = [(loc1[0], loc2[0]), loc1[1]]
+            elif path1[i] == path2[j + 1] and path2 == path1[i + 1]:  # for edge collisions
+                first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
 
     return first_collision
 
@@ -53,7 +66,6 @@ def detect_collisions(paths):
 
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
 
-    paths = []
     for ac in aircraft_lst:
         if ac.spawntime == t:
             ac.status = "taxiing"
@@ -64,11 +76,12 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                                                       ac.spawntime, ac.id, constraints)
             if success:
                 paths.append({'agent': ac.id, 'path': path})
+
             else:
                 raise Exception("No solution found for", ac.id)
 
-    collisions = detect_collisions(paths)
-    print(collisions)
+            collisions = detect_collisions(paths)
+            print(collisions)
 
 
 
