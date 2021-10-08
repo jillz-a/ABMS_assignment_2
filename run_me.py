@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 simulation_time = 20
 numb_of_aircraft = 20
 planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
-priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
+priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
@@ -146,7 +146,7 @@ def scorecounter(aircraft_lst): #Calculate score of simulation run
     wait_time = []
     for aircraft in aircraft_lst:
         wait_time.append(aircraft.waiting_time)
-    print(wait_time)
+
     avg_wait_time = np.average(wait_time)
 
     score = np.round(avg_wait_time, 3)
@@ -279,7 +279,7 @@ while running:
     for ac in aircraft_lst: 
         if ac.status == "taxiing": 
             ac.move(dt, t)
-            if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0:
+            if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
                 if ac.from_to == from_to_lst[ac.id]:
                     ac.waiting_time += 1
                 from_to_lst[ac.id] = ac.from_to
@@ -288,6 +288,7 @@ while running:
                            
     t = t + dt
 
+    #Calculate score of planner
     if t == time_end:
         score = scorecounter(aircraft_lst)
         print('Score = ', score)
