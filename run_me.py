@@ -27,10 +27,10 @@ nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
 edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node), length
 
 #Parameters that can be changed:
-simulation_time = 20
-numb_of_aircraft = 20
-planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
-priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
+simulation_time = 10
+numb_of_aircraft = 5
+planner = "CBS" #choose which planner to use (currently only Independent is implemented)
+priority = 'first_come' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
@@ -266,7 +266,9 @@ while running:
         constraints, prioritize_counter, aircraft_lst = run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, constraints, prioritize_counter)
 
     elif planner == "CBS":
-        run_CBS()
+        if t == 0:
+            constraints = []
+        run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints)
     #elif planner == -> you may introduce other planners here
     else:
         raise Exception("Planner:", planner, "is not defined.")

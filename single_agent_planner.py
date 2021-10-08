@@ -157,8 +157,6 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
             return True, get_path(curr)
 
 
-
-
         # Addition of code to account for a waiting step. --------------------------------------------------------------
         child = {'loc': curr['loc'],
                     'g_val': curr['g_val'] + 0.5,
