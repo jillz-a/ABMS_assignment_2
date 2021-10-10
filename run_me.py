@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 simulation_time = 20
 numb_of_aircraft = 25
 planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
-priority = 'first_come' #choose between 'first_come', 'shortest_path' or 'weighted'
+priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
