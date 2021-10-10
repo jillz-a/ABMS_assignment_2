@@ -27,9 +27,9 @@ nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
 edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node), length
 
 #Parameters that can be changed:
-simulation_time = 10
-numb_of_aircraft = 5
-planner = "CBS" #choose which planner to use (currently only Independent is implemented)
+simulation_time = 20
+numb_of_aircraft = 25
+planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
 priority = 'first_come' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
@@ -174,7 +174,7 @@ if visualization:
 #Start of while loop    
 running=True
 escape_pressed = False
-time_end = simulation_time
+time_end = simulation_time + 5
 dt = 0.1 #should be factor of 0.5 (0.5/dt should be integer)
 t= 0
 
@@ -201,59 +201,67 @@ while running:
         timer.sleep(visualization_speed) 
 
     # #Spawning: aircraft are spawned on random gate/arrival nodes and are assigned a random departure/gate node
-    # gate_nodes = [97, 34, 35, 36, 98]
-    # arrival_nodes = [37, 38]
-    # departure_nodes = [1, 2]
-    # chosen_gate_nodes = [0, 0, 0, 0, 0]
-    # chosen_departure_nodes = [0, 0]
-    #
-    # if t==1:
-    #     start_nodes_and_time = []
-    #
-    #     #introduce random aircraft
-    #     for i in range(numb_of_aircraft):
-    #         counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
-    #         arrival_or_departure = rnd.choice(['A', 'D'])
-    #         spawn_time = rnd.randint(1, simulation_time)
-    #
-    #         if arrival_or_departure == 'A':
-    #             start_node = rnd.choice(arrival_nodes)
-    #             while [start_node, spawn_time] in start_nodes_and_time:
-    #                 start_node = rnd.choice(arrival_nodes)
-    #                 counter = counter + 1
-    #                 if counter >= 2: #first check other arrival node (of total 2)
-    #                     spawn_time = rnd.randint(0, simulation_time)
-    #                     counter = 0
-    #
-    #             goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
-    #             # print(goal_node)
-    #             chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
-    #
-    #         if arrival_or_departure == 'D':
-    #             start_node = rnd.choice(gate_nodes)
-    #             while [start_node, spawn_time] in start_nodes_and_time:
-    #                 start_node = rnd.choice(gate_nodes)
-    #                 counter = counter + 1
-    #                 if counter >= 5: #first check all other gate nodes (of total 5)
-    #                     spawn_time = rnd.randint(0, simulation_time)
-    #                     counter = 0
-    #
-    #             goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
-    #             # print(goal_node)
-    #             chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
-    #
-    #         ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
-    #         aircraft_lst.append(ac)
-    #         start_nodes_and_time.append([start_node, spawn_time])
+    gate_nodes = [97, 34, 35, 36, 98]
+    arrival_nodes = [37, 38]
+    departure_nodes = [1, 2]
+    chosen_gate_nodes = [0, 0, 0, 0, 0]
+    chosen_departure_nodes = [0, 0]
 
 
-    #Spawn aircraft for this timestep (use for example a random process)
-    if t == 1:
-        ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
-        aircraft_lst.append(ac)
-        aircraft_lst.append(ac1)
-        
+    # if t==0:
+    #     ac = Aircraft(1, 'A', 36, 37, 5, nodes_dict)
+    #     print(ac.spawntime)
+    #     spawntime = ac.spawntime
+    #     ac.spawntime = spawntime + 1
+    #     print(ac.spawntime)
+
+    if t==1:
+        start_nodes_and_time = []
+
+        #introduce random aircraft
+        for i in range(numb_of_aircraft):
+            counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
+            arrival_or_departure = rnd.choice(['A', 'D'])
+            spawn_time = rnd.randint(1, simulation_time)
+
+            if arrival_or_departure == 'A':
+                start_node = rnd.choice(arrival_nodes)
+                while [start_node, spawn_time] in start_nodes_and_time:
+                    start_node = rnd.choice(arrival_nodes)
+                    counter = counter + 1
+                    if counter >= 2: #first check other arrival node (of total 2)
+                        spawn_time = rnd.randint(0, simulation_time)
+                        counter = 0
+
+                goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
+                # print(goal_node)
+                chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
+
+            if arrival_or_departure == 'D':
+                start_node = rnd.choice(gate_nodes)
+                while [start_node, spawn_time] in start_nodes_and_time:
+                    start_node = rnd.choice(gate_nodes)
+                    counter = counter + 1
+                    if counter >= 5: #first check all other gate nodes (of total 5)
+                        spawn_time = rnd.randint(0, simulation_time)
+                        counter = 0
+
+                goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
+                # print(goal_node)
+                chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
+
+            ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
+            aircraft_lst.append(ac)
+            start_nodes_and_time.append([start_node, spawn_time])
+
+
+    # #Spawn aircraft for this timestep (use for example a random process)
+    # if t == 1:
+    #     ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+    #     ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+    #     aircraft_lst.append(ac)
+    #     aircraft_lst.append(ac1)
+    #
     #Do planning 
     if planner == "Independent":
         #(Hint: Think about the condition that triggers (re)planning)
@@ -279,7 +287,7 @@ while running:
 
     # Move the aircraft that are taxiing
     for ac in aircraft_lst: 
-        if ac.status == "taxiing": 
+        if ac.status == "taxiing":
             ac.move(dt, t)
             if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
                 if ac.from_to == from_to_lst[ac.id]:
