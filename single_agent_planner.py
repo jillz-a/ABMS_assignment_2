@@ -190,7 +190,8 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
                 continue
 
             # Code in order to check to prevent the aircraft from going backwards.
-            path = get_path(curr)[-5:]
+            # path = get_path(curr)[-8:]
+            path = get_path(curr)
             path = list(dict(path))
             if child['loc'] in path:
                 continue

@@ -1,7 +1,8 @@
 """
 Run-me.py is the main file of the simulation. Run this file to run the simulation.
 """
-
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import os
 
 import numpy as np
@@ -19,7 +20,7 @@ from cbs import run_CBS
 import numpy.random as rnd
 import math
 
-rnd.seed(8)
+rnd.seed(1)
 
 #%% SET SIMULATION PARAMETERS
 #Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
