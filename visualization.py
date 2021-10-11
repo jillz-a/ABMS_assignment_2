@@ -112,6 +112,7 @@ def map_initialization(nodes_dict, edges_dict):  # function to initialise mapf
         piclist.append(pg.transform.rotozoom(plane_pic, i, (1. / 14.)))  # 1/14 is used for scaling the aircraft image
         rectlist.append(piclist[i].get_rect())  # get rectangular surface of the pic
 
+    # ------------------------------------------------------------------------------------------------------------------
 
     map_properties['outer_reso'] = outer_reso  # store created information (resolution)
     map_properties['inner_reso'] = inner_reso  # resolution airport layout
