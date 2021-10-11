@@ -4,9 +4,10 @@ Implement CBS here
 
 
 import random
-from single_agent_planner import simple_single_agent_astar
+from single_agent_planner import simple_single_agent_astar, pop_node, push_node
 
 paths = []
+open_list = []
 
 # def detect_collision(path1, path2):
 #     first_collision = []
@@ -20,6 +21,12 @@ paths = []
 #                 first_collision = [(loc1[0], loc2[0]), loc1[1]]
 
     # return first_collision
+
+def get_sum_of_cost(paths):
+    rst = 0
+    for path in paths:
+        rst += len(path) - 1
+    return rst
 
 def detect_collision(path1, path2):
     first_collision = []
@@ -64,7 +71,27 @@ def detect_collisions(paths):
 
     return collision_list
 
+def standard_splitting(collision):
+
+    collision = collision[0]
+    if collision == None:
+        return None
+
+    if len(collision['loc']) == 2:
+        collision_split = [{'agent': collision['a1'], 'loc': collision['loc'], 't_step': collision['t_step']+1},
+                           {'agent': collision['a2'], 'loc': [collision['loc'][1], collision['loc'][0]], 't_step': collision['t_step']+1}]
+    else:
+        collision_split = [{'agent': collision['a1'], 'loc': collision['loc'], 't_step': collision['t_step']},
+                           {'agent': collision['a2'], 'loc': collision['loc'], 't_step': collision['t_step']}]
+
+    return collision_split
+
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
+
+    root = {'cost': 0,
+            'constraints': [],
+            'paths': [],
+            'collisions': []}
 
     for ac in aircraft_lst:
         if ac.spawntime == t:
@@ -75,15 +102,18 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
             success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
                                                       ac.spawntime, ac.id, constraints)
             if success:
+                root['paths'].append(path)
                 paths.append({'agent': ac.id, 'path': path})
 
             else:
                 raise Exception("No solution found for", ac.id)
 
-            collisions = detect_collisions(paths)
-            print(collisions)
+    root['collisions'] = detect_collisions(root['paths'])
+    root['cost'] = get_sum_of_cost(root['paths'])
+    push_node(open_list, root)
 
 
 
-    return
+
+    return constraints, aircraft_lst
 

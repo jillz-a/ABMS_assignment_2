@@ -108,18 +108,18 @@ def map_initialization(nodes_dict, edges_dict):  # function to initialise mapf
     # ------------------------------------------------------------------------------------------------------------------
     # Uncomment eerste gedeelte, verwijder het tweede.
 
-    # plane_pic = pg.image.load(os.getcwd() + "\\blue-plane-hi.bmp")  # get the aircraft image
-    # plane_pic.set_colorkey(pg.Color(255, 255, 255))  # remove white background to make transparent
+    plane_pic = pg.image.load(os.getcwd() + "\\blue-plane-hi.bmp")  # get the aircraft image
+    plane_pic.set_colorkey(pg.Color(255, 255, 255))  # remove white background to make transparent
     #
     # for i in range(0, 360):  # transform aircraft image in every possible direction
     #     piclist.append(pg.transform.rotozoom(plane_pic, i, (1. / 14.)))  # 1/14 is used for scaling the aircraft image
     #     rectlist.append(piclist[i].get_rect())  # get rectangular surface of the pic
 
-    plane_pic = pg.image.load(os.getcwd() + "\\Untitled.bmp")  # get the aircraft image
-    plane_pic.set_colorkey(pg.Color(255, 255, 255))  # remove white background to make transparent
+    # plane_pic = pg.image.load(os.getcwd() + "\\Untitled.bmp")  # get the aircraft image
+    # plane_pic.set_colorkey(pg.Color(255, 255, 255))  # remove white background to make transparent
 
     for i in range(0, 360):  # transform aircraft image in every possible direction
-        piclist.append(pg.transform.rotozoom(plane_pic, i, (1. / 4)))  # 1/14 is used for scaling the aircraft image
+        piclist.append(pg.transform.rotozoom(plane_pic, i, (1. / 14)))  # 1/14 is used for scaling the aircraft image
         rectlist.append(piclist[i].get_rect())  # get rectangular surface of the pic
 
     # ------------------------------------------------------------------------------------------------------------------

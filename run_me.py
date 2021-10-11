@@ -29,8 +29,8 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 20
-numb_of_aircraft = 25
-planner = "Prioritized" #choose which planner to use (currently only Independent is implemented)
+numb_of_aircraft = 15
+planner = "Prioritized" #choose which planner to use (prioritized, CBS)
 priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
@@ -150,7 +150,7 @@ def scorecounter(aircraft_lst): #Calculate score of simulation run
 
     avg_wait_time = np.average(wait_time)
 
-    score = np.round(avg_wait_time, 3)
+    score = np.round(avg_wait_time, 4)
 
     return score
 
