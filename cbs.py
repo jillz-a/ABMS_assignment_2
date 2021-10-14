@@ -207,7 +207,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
             # print(len(P['collisions']))
             constraints = standard_splitting(collision)
 
-            # Code below is copy pasted from my warmup exercise.
             for constraint in constraints:  # Line 12.
                 Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': []}  # Line 13, new node Q.
                 Q['constraints'] = list(P['constraints'])
