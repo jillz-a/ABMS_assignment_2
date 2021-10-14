@@ -202,7 +202,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
             if len(P['collisions']) == 0:
                 return P['paths']
             # print('Hier kom ik niet')
-            collision = P['collisions']
+            collision = P['collisions'][0]
             # print('Collision: ', collision)
             # print(len(P['collisions']))
             constraints = standard_splitting(collision)
