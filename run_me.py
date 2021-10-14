@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 #Parameters that can be changed:
 simulation_time = 20
 numb_of_aircraft = 15
-planner = "Prioritized" #choose which planner to use (prioritized, CBS)
+planner = "CBS" #choose which planner to use (prioritized, CBS)
 priority = 'weighted' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
@@ -262,7 +262,7 @@ while running:
     #     ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
     #     aircraft_lst.append(ac)
     #     aircraft_lst.append(ac1)
-    #
+
     #Do planning 
     if planner == "Independent":
         #(Hint: Think about the condition that triggers (re)planning)
