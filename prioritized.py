@@ -73,7 +73,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
 
         aircraft_lst_new = []
         for element in lst_sorted:
-            index = element[0]
+            index = int(element[0])
             aircraft_lst_new.append(aircraft_lst[index])
 
         aircraft_lst = aircraft_lst_new
