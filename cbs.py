@@ -71,11 +71,11 @@ def detect_collisions(paths):
         return collision_list
 
 def standard_splitting(collision):
-
-    # collision = collision[0]
+    if collision == []:
+        return []
+    collision = collision[0]
     if collision == None:
-        return None
-
+        return []
     if len(collision['node']) == 2:
         collision_split = [{'agent': collision['a1'], 'node': collision['node'], 'timestep': collision['timestep']+1},
                            {'agent': collision['a2'], 'node': [collision['node'][1], collision['node'][0]], 'timestep': collision['timestep']+1}]
@@ -84,58 +84,6 @@ def standard_splitting(collision):
                            {'agent': collision['a2'], 'node': collision['node'], 'timestep': collision['timestep']}]
 
     return collision_split
-
-# def standard_splitting(collision):
-#     return_list = []
-#     agent1 = collision['a1']
-#     agent2 = collision['a2']
-#     time_step = collision['time_step']
-#
-#     # Vertex collision
-#     if len(collision['loc']) == 1:
-#         location = collision['loc']
-#         return_list.append({'agent': agent1, 'loc': location, 'time_step': time_step})
-#         return_list.append({'agent': agent2, 'loc': location, 'time_step': time_step})
-#
-#     # Edge collision
-#     if len(collision['loc']) == 2:
-#         location = collision['loc']
-#
-#         return_list.append({'agent': agent1, 'loc': location, 'time_step': time_step})
-#         return_list.append({'agent': agent2, 'loc': [location[-1], location[0]], 'time_step': time_step})
-#     return return_list
-#
-# def detect_collision(path1, path2):
-#     time = max(len(path1), len(path2))
-#     for time in range(1, time):
-#         # Vertex collisions
-#         node_location_1 = get_location(path1, time)
-#         node_location_2 = get_location(path2, time)
-#         if node_location_1 == node_location_2:
-#             return {'a1': 0, 'a2': 1, 'loc': [node_location_1], 'time_step': time}
-#
-#         # Edge collisions
-#         node_location_t_1 = get_location(path1, time-1)
-#         node_location_t_2 = get_location(path2, time-1)
-#         if node_location_1 == node_location_t_2 and node_location_2 == node_location_t_1:
-#             return {'a1': 0,'a2': 1, 'loc': [node_location_t_1, node_location_1], 'time_step': time}
-#
-#     return None
-#
-# def detect_collisions(paths):
-#     collisions = []
-#     for agent0 in range(len(paths)):
-#         for agent1 in range(agent0 + 1, len(paths)):
-#             if agent0 == agent1:
-#                 continue
-#             collision = detect_collision(paths[agent0], paths[agent1])
-#
-#             if collision != None:
-#                 collision['a1'] = agent0
-#                 collision['a2'] = agent1
-#                 collisions.append(collision)
-#
-#     return collisions
 
 def get_location(path, time):
     if time < 0:
@@ -146,6 +94,8 @@ def get_location(path, time):
         return path[-1]
 
 def push_node(open_list, numb_of_generated, node):
+    if node['collisions'] == None:
+        node['collisions'] = []
     heapq.heappush(open_list, (node['cost'], len(node['collisions']), numb_of_generated , node))
 
 
@@ -164,7 +114,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.
             ac.status = "taxiing"
-            print(ac.id, ac.goal)
+            # print(ac.id, ac.goal)
             ac.position = nodes_dict[ac.start]["xy_pos"]
             boolean = True
 
@@ -183,8 +133,13 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 # print(ac.spawntime, ac.id, ac.position)
                 success, path = simple_single_agent_astar(nodes_dict, ac.start, goal_node, heuristics,
                                                           ac.spawntime, ac.id, constraints)
+                print(ac.id, ac.spawntime, path)
                 if success:
                     root['paths'].append(path)
+                    ac.path_to_goal = path[1:]
+                    print(ac.path_to_goal)
+                    next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
+                    ac.from_to = [path[0][0], next_node_id]
                     #root['paths'].append({'agent': ac.id, 'path': path})
                 else:
                     raise Exception("No solution found for", ac.id)
@@ -197,17 +152,16 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
         while len(open_list) > 0:
 
             P = pop_node(open_list)
-            # print(P['paths'])
-            print(P['collisions'])
-            if P['collisions'][0] == None:
+            # print(P['collisions'])
+            if P['collisions'] == None:
+                print("Is leeg")
                 return P['paths']
-            # print('Hier kom ik niet')
 
-            collision = P['collisions'][0]
-            # print('Collision: ', collision)
-            # print(len(P['collisions']))
+
+            collision = P['collisions']
+
             constraints = standard_splitting(collision)
-
+            # print('Hier je path')
 
             for constraint in constraints:  # Line 12.
                 Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': []}  # Line 13, new node Q.
@@ -219,9 +173,12 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 test = (ac.start, goal_node, ac.spawntime, a_i, Q['constraints'])
                 success, path = simple_single_agent_astar(nodes_dict, Q['paths'][a_i][0][0], Q['paths'][a_i][-1][0], heuristics,
                                                           ac.spawntime, a_i, Q['constraints'])
-
+                # for ac in aircraft_lst:
+                #     if ac.id == a_i:
+                #         success, path = simple_single_agent_astar(nodes_dict, ac.position[0], ac.goal, heuristics,
+                #                                                 ac.spawntime, a_i, Q['constraints'])
                 if success == True:
-                    print('succes')
+                    # print('succes')
 
                     for ac in aircraft_lst:
                         if ac.id == a_i:
