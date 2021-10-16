@@ -131,13 +131,20 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 # start_node = ac.start
                 goal_node = ac.goal
                 # print(ac.spawntime, ac.id, ac.position)
-                success, path = simple_single_agent_astar(nodes_dict, ac.start, goal_node, heuristics,
+                print(ac.id, t, ac.spawntime)
+                if t != ac.spawntime:
+                    for i in ac.path_to_goal:
+                        print(i)
+                        if i[1] == t:
+                            position = ac.path_to_goal[i][0]
+                if t == ac.spawntime:
+                    position = ac.start
+                success, path = simple_single_agent_astar(nodes_dict, position, goal_node, heuristics,
                                                           ac.spawntime, ac.id, constraints)
                 print(ac.id, ac.spawntime, path)
                 if success:
                     root['paths'].append(path)
                     ac.path_to_goal = path[1:]
-                    print(ac.path_to_goal)
                     next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                     ac.from_to = [path[0][0], next_node_id]
                     #root['paths'].append({'agent': ac.id, 'path': path})
@@ -171,8 +178,18 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 Q['paths'] = P['paths']
                 a_i = constraint['agent']  # Line 16, obtaining the agent in the constraint.
                 test = (ac.start, goal_node, ac.spawntime, a_i, Q['constraints'])
-                success, path = simple_single_agent_astar(nodes_dict, Q['paths'][a_i][0][0], Q['paths'][a_i][-1][0], heuristics,
+                for ac in aircraft_lst:
+                    if ac.id == a_i:
+                        if t != ac.spawntime:
+                            for i in ac.path_to_goal:
+                                if i[1] == t:
+                                    position = ac.path_to_goal[i][0]
+                        if t == ac.spawntime:
+                            position = ac.start
+                success, path = simple_single_agent_astar(nodes_dict, position, Q['paths'][a_i][-1][0], heuristics,
                                                           ac.spawntime, a_i, Q['constraints'])
+                # success, path = simple_single_agent_astar(nodes_dict, Q['paths'][a_i][0][0], Q['paths'][a_i][-1][0], heuristics,
+                #                                           ac.spawntime, a_i, Q['constraints'])
                 # for ac in aircraft_lst:
                 #     if ac.id == a_i:
                 #         success, path = simple_single_agent_astar(nodes_dict, ac.position[0], ac.goal, heuristics,

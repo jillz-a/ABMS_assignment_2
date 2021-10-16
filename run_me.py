@@ -255,7 +255,7 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
-    random = False
+    random = True
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
         ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
