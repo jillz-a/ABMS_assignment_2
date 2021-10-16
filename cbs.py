@@ -3,11 +3,11 @@ Implement CBS here
 """
 
 import heapq
+import numpy as np
 import random
 from single_agent_planner import simple_single_agent_astar # , pop_node, push_node
 
-# paths = []
-# open_list = []
+
 
 # def detect_collision(path1, path2):
 #     first_collision = []
@@ -46,12 +46,12 @@ def detect_collisions(paths):
     collision_list = []
 
     if len(paths) >= 2:
-        for agent0 in paths:
-            for agent1 in paths:
-                if agent0['agent'] == agent1['agent']:
+        for agent0 in range(len(paths)):
+            for agent1 in range(len(paths)):
+                if agent0 == agent1:
                     continue
                 else:
-                    first_collision = detect_collision(agent0['path'], agent1['path'])
+                    first_collision = detect_collision(paths[agent0], paths[agent1])
                     if len(first_collision) == 0:
                         continue
 
@@ -59,17 +59,16 @@ def detect_collisions(paths):
                         # print('first collision = ', first_collision, type(first_collision[0][0]))
                         if type(first_collision[0]) == tuple:
                             collision_list.append(
-                                {'a1': agent0['agent'], 'a2': agent1['agent'], 'node': [first_collision[0][0], first_collision[0][1]],
+                                {'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
                                  'timestep': first_collision[1]})
                             return collision_list
                         else:
                             collision_list.append(
-                                {'a1': agent0['agent'], 'a2': agent1['agent'], 'node': [first_collision[0]], 'timestep': first_collision[1]})
+                                {'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             return collision_list
-    else:
-        collision_list.append(None)
 
-    return collision_list
+        collision_list.append(None)
+        return collision_list
 
 def standard_splitting(collision):
 
@@ -146,17 +145,17 @@ def get_location(path, time):
     else:
         return path[-1]
 
-def push_node(open_list, node):
-    heapq.heappush(open_list, (node['cost'], len(node['collisions']), node))
+def push_node(open_list, numb_of_generated, node):
+    heapq.heappush(open_list, (node['cost'], len(node['collisions']), numb_of_generated , node))
 
 
 def pop_node(open_list):
-    _, _, node = heapq.heappop(open_list)
+    _, _, _, node = heapq.heappop(open_list)
     return node
 
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
+    numb_of_generated = 0
     open_list = []
-
     # These four lines create a boolean for replanning. If no new aircraft enters the area then of course we do not need
     # to replan.
     boolean = False
@@ -185,27 +184,30 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 success, path = simple_single_agent_astar(nodes_dict, ac.start, goal_node, heuristics,
                                                           ac.spawntime, ac.id, constraints)
                 if success:
-                    # root['paths'].append(path)
-                    root['paths'].append({'agent': ac.id, 'path': path})
+                    root['paths'].append(path)
+                    #root['paths'].append({'agent': ac.id, 'path': path})
                 else:
                     raise Exception("No solution found for", ac.id)
 
         root['collisions'] = detect_collisions(root['paths'])
         root['cost'] = get_sum_of_cost(root['paths'])
-        push_node(open_list, root)
+        push_node(open_list, numb_of_generated, root)
+        numb_of_generated += 1
 
         while len(open_list) > 0:
 
             P = pop_node(open_list)
             # print(P['paths'])
             print(P['collisions'])
-            if len(P['collisions']) == 0:
+            if P['collisions'][0] == None:
                 return P['paths']
             # print('Hier kom ik niet')
+
             collision = P['collisions'][0]
             # print('Collision: ', collision)
             # print(len(P['collisions']))
             constraints = standard_splitting(collision)
+
 
             for constraint in constraints:  # Line 12.
                 Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': []}  # Line 13, new node Q.
@@ -214,23 +216,26 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints):
                 Q['constraints'].append(constraint)
                 Q['paths'] = P['paths']
                 a_i = constraint['agent']  # Line 16, obtaining the agent in the constraint.
-                success, path = simple_single_agent_astar(nodes_dict, ac.start, goal_node, heuristics,
-                                                          ac.spawntime, a_i, constraints)
+                test = (ac.start, goal_node, ac.spawntime, a_i, Q['constraints'])
+                success, path = simple_single_agent_astar(nodes_dict, Q['paths'][a_i][0][0], Q['paths'][a_i][-1][0], heuristics,
+                                                          ac.spawntime, a_i, Q['constraints'])
 
                 if success == True:
                     print('succes')
-                    # for ac in aircraft_lst:
-                    #     if ac.id == a_i:
-                    #
-                    #         ac.path_to_goal = path[1:]
-                    #         next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-                    #         ac.from_to = [path[0][0], next_node_id]
-                    #         break
 
-                    Q['paths'][a_i] = {'agent': a_i, 'path': path}
+                    for ac in aircraft_lst:
+                        if ac.id == a_i:
+
+                            ac.path_to_goal = path[1:]
+                            next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
+                            ac.from_to = [path[0][0], next_node_id]
+                            break
+
+                    Q['paths'][a_i] = list(path)
                     Q['collisions'] = detect_collisions(Q['paths'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
-                    push_node(open_list, Q)
+                    push_node(open_list, numb_of_generated, Q)
+                    numb_of_generated += 1
 
     return constraints, aircraft_lst
 
