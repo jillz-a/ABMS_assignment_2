@@ -17,21 +17,22 @@ def get_sum_of_cost(paths):
 
 def detect_collision(path1, path2):
     first_collision = []
-
     for i in range(len(path1)-1):
         for j in range(len(path2)-1):
-            if path1[i+1] == path2[j+1] or path1[i] == path2[j]:  # for vertex collisions
+            if path1[i] == path2[j]:# for vertex collisions
                 first_collision = [path1[i][0], path1[i][1]]
-                print('Vertex')
                 return first_collision
-            elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0]:  # for edge collisions
+            elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
+                    and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
                 first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
                 return first_collision
-                # print('Edge')
-                # print(first_collision)
-            #     print(path1[i], path2[j+1], path2[j], path1[i+1])
+    if path1[i+1] == path2[j+1]:
+        first_collision = [path1[i+1][0], path1[i+1][1]]
+        return first_collision
 
     return first_collision
+# print(detect_collision([(58.0, 4.5), (14.0, 5.0), (65.0, 5.5)],
+#                         [(65.0, 4.5), (65.0, 5.0), (14.0, 5.5)]))
 
 def detect_collisions(paths, id):
     collision_list = []
@@ -49,7 +50,7 @@ def detect_collisions(paths, id):
                         if type(first_collision[0]) == tuple:
                             # print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
                             #      'timestep': first_collision[1]})
-
+                            print(first_collision)
                             collision_list.append(
                                 {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0][0], first_collision[0][1]],
                                  'timestep': first_collision[1]})
@@ -151,7 +152,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
             P = pop_node(open_list)
             # print(P['collisions'])
-            if P['collisions'] == None:
+            if P['collisions'] == None or len(P['collisions']) == 0:
                 print("Is leeg")
                 return P['paths']
 
@@ -169,7 +170,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 Q['constraints'].append(constraint)
                 Q['paths'] = P['paths']
                 a_i = constraint['agent']  # Line 16, obtaining the agent in the constraint.
-                print(a_i)
+                # print(a_i)
                 for ac in aircraft_lst:
                     if ac.id == a_i:
                         current_node = dict_inverse_nodes[ac.position]["id"]
@@ -189,9 +190,10 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                             next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                             ac.from_to = [path[0][0], next_node_id]
                             break
-
                     Q['paths'][Q['id'].index(a_i)] = list(path)
+                    print(Q['paths'])
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
+                    print(Q['collisions'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1
