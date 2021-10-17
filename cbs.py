@@ -22,9 +22,12 @@ def detect_collision(path1, path2):
         for j in range(len(path2)-1):
             if path1[i+1] == path2[j+1] or path1[i] == path2[j]:  # for vertex collisions
                 first_collision = [path1[i][0], path1[i][1]]
-
-            elif path1[i] == path2[j + 1] and path2 == path1[i + 1]:  # for edge collisions
-                first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
+                print('Vertex')
+            # elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0]:  # for edge collisions
+            #     first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
+            #     print('Edge')
+            #     print(first_collision)
+            #     print(path1[i], path2[j+1], path2[j], path1[i+1])
 
     return first_collision
 
@@ -43,15 +46,15 @@ def detect_collisions(paths):
                     else:
                         # print('first collision = ', first_collision, type(first_collision[0][0]))
                         if type(first_collision[0]) == tuple:
-                            print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
-                                 'timestep': first_collision[1]})
+                            # print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
+                            #      'timestep': first_collision[1]})
 
                             collision_list.append(
                                 {'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
                                  'timestep': first_collision[1]})
                             return collision_list
                         else:
-                            print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
+                            # print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             collision_list.append(
                                 {'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             return collision_list
@@ -65,8 +68,9 @@ def standard_splitting(collision):
     collision = collision[0]
     if collision == None:
         return []
+
     if len(collision['node']) == 2:
-        collision_split = [{'agent': collision['a1'], 'node': collision['node'], 'timestep': collision['timestep']+1},
+        collision_split = [{'agent': collision['a1'], 'node': [collision['node'][0], collision['node'][1]], 'timestep': collision['timestep']+1},
                            {'agent': collision['a2'], 'node': [collision['node'][1], collision['node'][0]], 'timestep': collision['timestep']+1}]
     else:
         collision_split = [{'agent': collision['a1'], 'node': collision['node'], 'timestep': collision['timestep']},
@@ -104,8 +108,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
     # to replan.
     boolean = False
     for ac in aircraft_lst:
-        if ac.id == 1:
-            print(ac.spawntime)
         if ac.spawntime == t:
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.
@@ -155,6 +157,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             collision = P['collisions']
 
             constraints = standard_splitting(collision)
+            # print(constraints)
             # print('Hier je path')
 
             for constraint in constraints:  # Line 12.
@@ -184,7 +187,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
                     for ac in aircraft_lst:
                         if ac.id == a_i:
-                            print(path)
                             ac.path_to_goal = path[1:]
                             next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                             ac.from_to = [path[0][0], next_node_id]
