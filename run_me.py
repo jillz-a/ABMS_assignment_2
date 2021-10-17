@@ -162,7 +162,7 @@ def inverse_nodes_dict():
     This function is required to get the current node of the aircraft without for looping over a dictionary. Saves some
     computational time.
 
-    Almost all code is copy pasted from run_me. I adapted it to meet our needs.
+    Almost all code is copy pasted from create_graph. I adapted it to meet our needs.
     """
     nodes_file = "nodes.xlsx"
     df_nodes = pd.read_excel(os.getcwd() + "/" + nodes_file)
@@ -279,8 +279,8 @@ while running:
     random = False
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
-        ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+        ac = Aircraft(17, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+        ac1 = Aircraft(0, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
 
@@ -308,15 +308,17 @@ while running:
         from_to_lst = [0]*numb_of_aircraft
 
     # Move the aircraft that are taxiing
-    for ac in aircraft_lst: 
+    # for ac in aircraft_lst:
+    #     if ac.status == "taxiing":
+    #         ac.move(dt, t)
+    #         if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
+    #             if ac.from_to == from_to_lst[ac.id]:
+    #                 ac.waiting_time += 1
+    #             from_to_lst[ac.id] = ac.from_to
+                #print(from_to_lst)
+    for ac in aircraft_lst:
         if ac.status == "taxiing":
             ac.move(dt, t)
-            if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
-                if ac.from_to == from_to_lst[ac.id]:
-                    ac.waiting_time += 1
-                from_to_lst[ac.id] = ac.from_to
-                #print(from_to_lst)
-
                            
     t = t + dt
     #Calculate score of planner

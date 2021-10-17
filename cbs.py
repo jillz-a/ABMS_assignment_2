@@ -23,15 +23,17 @@ def detect_collision(path1, path2):
             if path1[i+1] == path2[j+1] or path1[i] == path2[j]:  # for vertex collisions
                 first_collision = [path1[i][0], path1[i][1]]
                 print('Vertex')
-            # elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0]:  # for edge collisions
-            #     first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
-            #     print('Edge')
-            #     print(first_collision)
+                return first_collision
+            elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0]:  # for edge collisions
+                first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
+                return first_collision
+                # print('Edge')
+                # print(first_collision)
             #     print(path1[i], path2[j+1], path2[j], path1[i+1])
 
     return first_collision
 
-def detect_collisions(paths):
+def detect_collisions(paths, id):
     collision_list = []
     if len(paths) >= 2:
         for agent0 in range(len(paths)):
@@ -42,7 +44,6 @@ def detect_collisions(paths):
                     first_collision = detect_collision(paths[agent0], paths[agent1])
                     if len(first_collision) == 0:
                         continue
-
                     else:
                         # print('first collision = ', first_collision, type(first_collision[0][0]))
                         if type(first_collision[0]) == tuple:
@@ -50,13 +51,13 @@ def detect_collisions(paths):
                             #      'timestep': first_collision[1]})
 
                             collision_list.append(
-                                {'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
+                                {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0][0], first_collision[0][1]],
                                  'timestep': first_collision[1]})
                             return collision_list
                         else:
                             # print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             collision_list.append(
-                                {'a1': agent0, 'a2': agent1, 'node': [first_collision[0]], 'timestep': first_collision[1]})
+                                {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             return collision_list
 
         collision_list.append(None)
@@ -117,10 +118,10 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             boolean = True
 
     if boolean:
-
         root = {'cost': 0,
                 'constraints': [],
                 'paths': [],
+                'id': [],
                 'collisions': []}
 
         for ac in aircraft_lst:
@@ -133,6 +134,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
                 if success:
                     root['paths'].append(path)
+                    root['id'].append(ac.id)
                     ac.path_to_goal = path[1:]
                     next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                     ac.from_to = [path[0][0], next_node_id]
@@ -140,7 +142,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 else:
                     raise Exception("No solution found for", ac.id)
 
-        root['collisions'] = detect_collisions(root['paths'])
+        root['collisions'] = detect_collisions(root['paths'], root['id'])
         root['cost'] = get_sum_of_cost(root['paths'])
         push_node(open_list, numb_of_generated, root)
         numb_of_generated += 1
@@ -161,12 +163,13 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             # print('Hier je path')
 
             for constraint in constraints:  # Line 12.
-                Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': []}  # Line 13, new node Q.
+                Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': [], 'id': []}  # Line 13, new node Q.
                 Q['constraints'] = list(P['constraints'])
-
+                Q['id'] = P['id']
                 Q['constraints'].append(constraint)
                 Q['paths'] = P['paths']
                 a_i = constraint['agent']  # Line 16, obtaining the agent in the constraint.
+                print(a_i)
                 for ac in aircraft_lst:
                     if ac.id == a_i:
                         current_node = dict_inverse_nodes[ac.position]["id"]
@@ -176,12 +179,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                                           t, id, Q['constraints'])
-                # success, path = simple_single_agent_astar(nodes_dict, Q['paths'][a_i][0][0], Q['paths'][a_i][-1][0], heuristics,
-                #                                           ac.spawntime, a_i, Q['constraints'])
-                # for ac in aircraft_lst:
-                #     if ac.id == a_i:
-                #         success, path = simple_single_agent_astar(nodes_dict, ac.position[0], ac.goal, heuristics,
-                #                                                 ac.spawntime, a_i, Q['constraints'])
+
                 if success == True:
                     # print('succes')
 
@@ -192,8 +190,8 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                             ac.from_to = [path[0][0], next_node_id]
                             break
 
-                    Q['paths'][a_i] = list(path)
-                    Q['collisions'] = detect_collisions(Q['paths'])
+                    Q['paths'][Q['id'].index(a_i)] = list(path)
+                    Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1
