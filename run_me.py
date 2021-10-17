@@ -154,12 +154,33 @@ def scorecounter(aircraft_lst): #Calculate score of simulation run
 
     return score
 
+def inverse_nodes_dict():
+    """
+    Function to go from the (x,y) position back to the node. The return is a dictionary containing xy_positions and the
+    ID of the respective nodes.
+
+    This function is required to get the current node of the aircraft without for looping over a dictionary. Saves some
+    computational time.
+
+    Almost all code is copy pasted from run_me. I adapted it to meet our needs.
+    """
+    nodes_file = "nodes.xlsx"
+    df_nodes = pd.read_excel(os.getcwd() + "/" + nodes_file)
+
+    inverse_nodes_dictionary = {}
+    for i, row in df_nodes.iterrows():
+        node_properties = {"id": row["id"],
+                           "xy_pos": (row["x_pos"], row["y_pos"])}
+        node_id = (row["x_pos"], row["y_pos"])
+        inverse_nodes_dictionary[node_id] = node_properties
+    return inverse_nodes_dictionary
 
 #%% RUN SIMULATION
 # =============================================================================
 # 0. Initialization
 # =============================================================================
 nodes_dict, edges_dict, start_and_goal_locations = import_layout(nodes_file, edges_file)
+inverse_nodes_dictionary = inverse_nodes_dict()
 graph = create_graph(nodes_dict, edges_dict, plot_graph)
 heuristics = calc_heuristics(graph, nodes_dict)
 
@@ -255,7 +276,7 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
-    random = True
+    random = False
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
         ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
@@ -277,7 +298,7 @@ while running:
     elif planner == "CBS":
         if t == 0:
             constraints = []
-        run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints)
+        run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
     #elif planner == -> you may introduce other planners here
     else:
         raise Exception("Planner:", planner, "is not defined.")
@@ -298,7 +319,6 @@ while running:
 
                            
     t = t + dt
-
     #Calculate score of planner
     if t == time_end:
         score = scorecounter(aircraft_lst)
