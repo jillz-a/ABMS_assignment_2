@@ -9,6 +9,9 @@ from single_agent_planner import simple_single_agent_astar # , pop_node, push_no
 import pandas as pd
 import os
 
+
+#Definitions
+
 def get_sum_of_cost(paths):
     rst = 0
     for path in paths:
@@ -31,8 +34,6 @@ def detect_collision(path1, path2):
         return first_collision
 
     return first_collision
-# print(detect_collision([(58.0, 4.5), (14.0, 5.0), (65.0, 5.5)],
-#                         [(65.0, 4.5), (65.0, 5.0), (14.0, 5.5)]))
 
 def detect_collisions(paths, id):
     collision_list = []
@@ -50,7 +51,7 @@ def detect_collisions(paths, id):
                         if type(first_collision[0]) == tuple:
                             # print({'a1': agent0, 'a2': agent1, 'node': [first_collision[0][0], first_collision[0][1]],
                             #      'timestep': first_collision[1]})
-                            print(first_collision)
+                            # print(first_collision)
                             collision_list.append(
                                 {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0][0], first_collision[0][1]],
                                  'timestep': first_collision[1]})
@@ -72,8 +73,8 @@ def standard_splitting(collision):
         return []
 
     if len(collision['node']) == 2:
-        collision_split = [{'agent': collision['a1'], 'node': [collision['node'][0], collision['node'][1]], 'timestep': collision['timestep']+1},
-                           {'agent': collision['a2'], 'node': [collision['node'][1], collision['node'][0]], 'timestep': collision['timestep']+1}]
+        collision_split = [{'agent': collision['a1'], 'node': [collision['node'][0], collision['node'][1]], 'timestep': collision['timestep']+0.5},
+                           {'agent': collision['a2'], 'node': [collision['node'][1], collision['node'][0]], 'timestep': collision['timestep']+0.5}]
     else:
         collision_split = [{'agent': collision['a1'], 'node': collision['node'], 'timestep': collision['timestep']},
                            {'agent': collision['a2'], 'node': collision['node'], 'timestep': collision['timestep']}]
@@ -99,7 +100,7 @@ def pop_node(open_list):
 
 
 
-
+#Run Conflict Based Search program
 
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_nodes):
     # Importing the dictionary to go from (x,y) to the node number.
@@ -151,9 +152,13 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         while len(open_list) > 0:
 
             P = pop_node(open_list)
+
+            if len(P['paths']) >= 2:
+                P['collisions'] = detect_collisions(P['paths'], P['id']) #Check for any collissions in current node
+
             # print(P['collisions'])
-            if P['collisions'] == None or len(P['collisions']) == 0:
-                print("Is leeg")
+            if len(P['collisions']) == 0 or P['collisions'][0] == None:
+                print("No collisions detected")
                 return P['paths']
 
 
@@ -191,9 +196,9 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                             ac.from_to = [path[0][0], next_node_id]
                             break
                     Q['paths'][Q['id'].index(a_i)] = list(path)
-                    print(Q['paths'])
+                    # print(Q['paths'])
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
-                    print(Q['collisions'])
+                    # print(Q['collisions'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1

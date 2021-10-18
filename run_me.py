@@ -28,7 +28,7 @@ nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
 edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node), length
 
 #Parameters that can be changed:
-simulation_time = 20
+simulation_time = 15
 numb_of_aircraft = 15
 planner = "CBS" #choose which planner to use (prioritized, CBS)
 priority = 'first_come' #choose between 'first_come', 'shortest_path' or 'weighted'
@@ -199,7 +199,7 @@ escape_pressed = False
 time_end = simulation_time + 5
 dt = 0.1 #should be factor of 0.5 (0.5/dt should be integer)
 t= 0
-random = False
+random = True #True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
 print("Simulation Started")
 while running:
     t= round(t,2)    
@@ -276,7 +276,7 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
-    random = False
+    # random = False
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
         ac = Aircraft(17, 'A', 37,36,t+0.5, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
