@@ -154,10 +154,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 if success:
                     root['paths'].append(path)
                     root['id'].append(ac.id)
-                    ac.path_to_goal = path[1:]
-                    next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-                    ac.from_to = [path[0][0], next_node_id]
-                    #root['paths'].append({'agent': ac.id, 'path': path})
                 else:
                     raise Exception("No solution found for", ac.id)
 
@@ -176,14 +172,18 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             # print(P['collisions'])
             if len(P['collisions']) == 0 or P['collisions'][0] == None:
                 print("No collisions detected")
+                for ac in aircraft_lst:
+                    if ac.id in P['id']:
+                        path = P['paths'][P['id'].index(ac.id)]
+                        ac.path_to_goal = path[1:]
+                        next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
+                        ac.from_to = [path[0][0], next_node_id]
                 return P['paths']
 
 
             collision = P['collisions']
 
             constraints = standard_splitting(collision)
-            # print(constraints)
-            # print('Hier je path')
 
             for constraint in constraints:  # Line 12.
                 Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': [], 'id': []}  # Line 13, new node Q.
@@ -192,7 +192,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 Q['constraints'].append(constraint)
                 Q['paths'] = P['paths']
                 a_i = constraint['agent']  # Line 16, obtaining the agent in the constraint.
-                # print(a_i)
                 for ac in aircraft_lst:
                     if ac.id == a_i:
                         current_node = dict_inverse_nodes[ac.position]["id"]
@@ -204,18 +203,8 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                                                           t, id, Q['constraints'])
 
                 if success == True:
-                    # print('succes')
-
-                    for ac in aircraft_lst:
-                        if ac.id == a_i:
-                            ac.path_to_goal = path[1:]
-                            next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-                            ac.from_to = [path[0][0], next_node_id]
-                            break
                     Q['paths'][Q['id'].index(a_i)] = list(path)
-                    # print(Q['paths'])
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
-                    # print(Q['collisions'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1
