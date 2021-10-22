@@ -101,7 +101,11 @@ def pop_node(open_list):
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_nodes):
     gate_nodes = [97, 34, 35, 36, 98]
     gate_block_nodes = [97, 34, 35, 36, 98]
-
+    gate_intersection_dict = {97: {'nodes': [83, 88, 29, 99]},
+                              34: {'nodes': [88, 84, 89, 30, 92]},
+                              35: {'nodes': [93, 31, 85, 89, 90]},
+                              36: {'nodes': [94, 32, 86, 90, 91]},
+                              98: {'nodes': [100, 33, 91, 87]}}
     numb_of_generated = 0
     open_list = []
 
@@ -118,6 +122,9 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             dict = {"id": ac.id, "Heading": ac.heading, "Position": ac.path_to_goal[0][0], "Goal_node": ac.goal}
             if dict["Heading"] == 270 and dict["Position"] in gate_block_nodes:
                 blocked_list.append(ac.goal)
+            if ac.type == "A":
+                if ac.path_to_goal[0][0] in gate_intersection_dict[ac.goal]['nodes']:
+                    blocked_list.append(ac.goal)
 
     boolean = False
     for ac in aircraft_lst:
@@ -127,8 +134,13 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 if random_string == "spawntime":
                     ac.spawntime = ac.spawntime + 0.5
                 if random_string == "start_location":
+                    counter = 0
                     while ac.start in blocked_list:
                         ac.start = rnd.choice(gate_nodes)
+                        counter = counter + 1
+                        if counter > 4:
+                            ac.spawntime = ac.spawntime + 0.5
+                            break
                 continue
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.

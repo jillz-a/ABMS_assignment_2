@@ -3,6 +3,7 @@ Run-me.py is the main file of the simulation. Run this file to run the simulatio
 """
 from os import environ
 import os
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import numpy as np
 import pandas as pd
 import networkx as nx
@@ -18,8 +19,8 @@ from cbs import run_CBS
 import numpy.random as rnd
 import math
 
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-rnd.seed(1)
+
+rnd.seed(2)
 
 #%% SET SIMULATION PARAMETERS
 #Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
@@ -27,7 +28,7 @@ nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
 edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node), length
 
 #Parameters that can be changed:
-simulation_time = 15
+simulation_time = 10
 numb_of_aircraft = 15
 planner = "CBS" #choose which planner to use (prioritized, CBS)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
@@ -275,6 +276,7 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
+    random = True
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
         ac = Aircraft(17, 'A', 37,36,t+0.5, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
@@ -296,7 +298,8 @@ while running:
     elif planner == "CBS":
         if t == 0:
             constraints = []
-        run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
+        if t%0.5==0:
+            run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
 
     #elif planner == -> you may introduce other planners here
     else:
@@ -307,18 +310,18 @@ while running:
         from_to_lst = [0]*numb_of_aircraft
 
     # Move the aircraft that are taxiing
-    for ac in aircraft_lst:
-        if ac.status == "taxiing":
-            ac.move(dt, t)
-            if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
-                if ac.from_to == from_to_lst[ac.id]:
-                    ac.waiting_time += 1
-                from_to_lst[ac.id] = ac.from_to
-
     # for ac in aircraft_lst:
     #     if ac.status == "taxiing":
     #         ac.move(dt, t)
-                           
+    #         if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
+    #             if ac.from_to == from_to_lst[ac.id]:
+    #                 ac.waiting_time += 1
+    #             from_to_lst[ac.id] = ac.from_to
+
+    for ac in aircraft_lst:
+        if ac.status == "taxiing":
+            ac.move(dt, t)
+
     t = t + dt
     #Calculate score of planner
     if t == time_end:
