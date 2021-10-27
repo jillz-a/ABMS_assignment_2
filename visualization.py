@@ -291,7 +291,7 @@ def map_running(map_properties, current_states, t):  # function to update the ma
     keys = pg.key.get_pressed()  # get the state of all keyboard buttons
     
     if collision:
-        timer.sleep(0.4)
+        timer.sleep(0.1)
     
     if keys[pg.K_ESCAPE]:  # if the escape key is being pressed
         escape_pressed = True  # stop running

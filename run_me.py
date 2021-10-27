@@ -15,6 +15,7 @@ from visualization import map_initialization, map_running
 from Aircraft import Aircraft
 from independent import run_independent_planner
 from prioritized import run_prioritized_planner
+from distributed_planning import run_distributed_planner
 from cbs import run_CBS
 import numpy.random as rnd
 import math
@@ -30,7 +31,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 #Parameters that can be changed:
 simulation_time = 10
 numb_of_aircraft = 15
-planner = "CBS" #choose which planner to use (prioritized, CBS)
+planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
 
 #Visualization (can also be changed)
@@ -301,7 +302,11 @@ while running:
         if t%0.5==0:
             run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
 
-    #elif planner == -> you may introduce other planners here
+    elif planner == "Distributed":
+        if t == 0:
+            constraints = []
+        run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t, constraints, inverse_nodes_dictionary)
+
     else:
         raise Exception("Planner:", planner, "is not defined.")
 
