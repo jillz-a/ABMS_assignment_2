@@ -8,7 +8,7 @@ import numpy as np
 import os
 #________________________________
 #Definitions
-depth_of_path = 4       # Defines to which index other a/c get information about the a/c's path.
+depth_of_path = 3       # Defines to which index other a/c get information about the a/c's path.
 
 def box_vision(heading, position, inverse_nodes_dictionary):
     visible_nodes = []
@@ -93,7 +93,7 @@ def detect_collisions(paths, id):
                                 {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0]], 'timestep': first_collision[1]})
                             return collision_list
 
-        collision_list.append(None)
+        # collision_list.append(None)
         return collision_list
 #________________________________
 #Main solver
@@ -130,8 +130,10 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                     paths = [ac.path_to_goal, radar_dict[node]['path']]
                     id_lst = [ac.id, radar_dict[node]['ac_id']]
 
-                    collision = detect_collisions(paths, id_lst)[0]
-                    if detect_collisions(paths, id_lst) != None and len(detect_collisions(paths, id_lst)) > 0:
+                    collision = detect_collisions(paths, id_lst)
+                    print(len(collision))
+                    if detect_collisions(paths, id_lst) is not None and len(detect_collisions(paths, id_lst)) > 0:
+                        collision = collision[0]
                         if ac.heading - radar_dict[node]['heading'] == -90 or ac.heading - radar_dict[node]['heading']\
                                 == -270:
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'],
@@ -150,12 +152,6 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                 ac.from_to = [path[0][0], next_node_id]
 
-    root = {'cost': 0,
-            'constraints': [],
-            'paths': [],
-            'id': [],
-            'collisions': []}
-
     """Independent planner using A* without constraints to generate initial paths"""
     for ac in aircraft_lst:
         if ac.spawntime == t:
@@ -164,20 +160,14 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
             start_node = ac.start
             ac.position = nodes_dict[ac.start]["xy_pos"]
             goal_node = ac.goal
-            succes, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, t, ac.id, constraints= [])
+            succes, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics, t,
+                                                     ac.id, constraints= [])
 
             if succes:
-                print(ac.id, path)
-                root['paths'].append(path)
-                root['id'].append(ac.id)
+                ac.path_to_goal = path[1:]
+                next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
+                ac.from_to = [path[0][0], next_node_id]
             else:
                 raise Exception("No solution found for", ac.id)
 
-    #vizualize
-    for ac in aircraft_lst:
-        if ac.id in root['id']:
-            path = root['paths'][root['id'].index(ac.id)]
-            ac.path_to_goal = path[1:]
-            next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-            ac.from_to = [path[0][0], next_node_id]
     return constraints
