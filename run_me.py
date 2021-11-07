@@ -277,10 +277,10 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
-    random = True
+    random = False
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
-        ac = Aircraft(17, 'A', 37,36,t+0.5, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+        ac = Aircraft(17, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
         ac1 = Aircraft(0, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
@@ -304,8 +304,9 @@ while running:
 
     elif planner == "Distributed":
         if t == 0:
-            constraints = []
-        run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t, constraints, inverse_nodes_dictionary)
+            constraints = {}
+        if t%0.5==0:
+            run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t, constraints, inverse_nodes_dictionary)
 
     else:
         raise Exception("Planner:", planner, "is not defined.")
