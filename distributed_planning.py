@@ -55,17 +55,20 @@ def box_vision(heading, position, inverse_nodes_dictionary):
 
 def detect_collision(path1, path2):
     first_collision = []
-    for i in range(len(path1)-1):
-        for j in range(len(path2)-1):
-            if path1[i] == path2[j]:# for vertex collisions
-                first_collision = [path1[i][0], path1[i][1]]
-                return first_collision
-            elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
-                    and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
-                first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
-                return first_collision
-    if path1[i+1] == path2[j+1]:
-        first_collision = [path1[i+1][0], path1[i+1][1]]
+    if len(path1) > 1:
+        for i in range(len(path1)-1):
+            for j in range(len(path2)-1):
+                if path1[i] == path2[j]:# for vertex collisions
+                    first_collision = [path1[i][0], path1[i][1]]
+                    return first_collision
+
+                elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
+                        and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
+                    first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
+                    return first_collision
+
+        if path1[i+1] == path2[j+1]:
+            first_collision = [path1[i+1][0], path1[i+1][1]]
         return first_collision
 
     return first_collision
