@@ -30,9 +30,10 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 10
-numb_of_aircraft = 15
+numb_of_aircraft = 4
+
 planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
-priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted'
+priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted' (only for Prioritized)
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
@@ -277,7 +278,7 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
-    random = False
+    random = True
     # Spawn aircraft for this timestep (use for example a random process)
     if t == 1 and random == False:
         ac = Aircraft(17, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36

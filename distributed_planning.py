@@ -7,12 +7,12 @@ import pandas as pd
 import numpy as np
 import os
 #________________________________
-#Definitions
+#Definitions and constants
 depth_of_path = 3       # Defines to which index other a/c get information about the a/c's path.
 
 def box_vision(heading, position, inverse_nodes_dictionary):
     visible_nodes = []
-    dE = 1E-12  # Really small value in order to include the ends in the numpy aranges.
+    dE = 1E-12  # Really small value in order to include the ends in the numpy arranges.
     x_vision = 1    # Vision in the x-direction.
     y_vision = 1    # Vision in the y-direction.
 
@@ -55,17 +55,20 @@ def box_vision(heading, position, inverse_nodes_dictionary):
 
 def detect_collision(path1, path2):
     first_collision = []
-    for i in range(len(path1)-1):
-        for j in range(len(path2)-1):
-            if path1[i] == path2[j]:# for vertex collisions
-                first_collision = [path1[i][0], path1[i][1]]
-                return first_collision
-            elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
-                    and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
-                first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
-                return first_collision
-    if path1[i+1] == path2[j+1]:
-        first_collision = [path1[i+1][0], path1[i+1][1]]
+    if len(path1) > 1:
+        for i in range(len(path1)-1):
+            for j in range(len(path2)-1):
+                if path1[i] == path2[j]:# for vertex collisions
+                    first_collision = [path1[i][0], path1[i][1]]
+                    return first_collision
+
+                elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
+                        and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
+                    first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
+                    return first_collision
+
+        if path1[i+1] == path2[j+1]:
+            first_collision = [path1[i+1][0], path1[i+1][1]]
         return first_collision
 
     return first_collision
@@ -86,7 +89,7 @@ def detect_collisions(paths, id):
                         if type(first_collision[0]) == tuple:
                             collision_list.append(
                                 {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0][0], first_collision[0][1]],
-                                 'timestep': first_collision[1]})
+                                 'timestep': first_collision[1]+0.5})
                             return collision_list
                         else:
                             collision_list.append(
@@ -112,10 +115,10 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
         ac.added_constraint = False
         if ac.status == "taxiing":
             ac_node = inverse_nodes_dictionary[ac.position]['id']
-            path = ac.path_to_goal[:depth_of_path]
+            path = ac.path_to_goal[:depth_of_path] #portion of path of a/c that will be communicated
 
             # Following line adds the location and path of every agent into a dictionary, basically a radar. Not all
-            # information about the paths is given, only the next X nodes.
+            # information about the paths is given, only the next X(depth_of_path) amount of nodes.
             radar_dict[ac_node] = {'path': path, 'ac_id': ac.id, 'heading': ac.heading}
 
             # Following line adds the visible nodes of the A/C into a dictionary.
