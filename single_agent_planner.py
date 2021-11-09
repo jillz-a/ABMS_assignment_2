@@ -77,9 +77,7 @@ def build_constraint_table(constraints, agent):
         else:
             location_lst = [i['node'][0]]
         constraint_table.append([timestep, location_lst])
-
-    constraint_table = np.array(constraint_table)
-
+    constraint_table = np.array(constraint_table, dtype=object)
     # Sort array on timestep, which is the 0th index in the constraint table appends.
     if len(constraint_table) != 0:
         constraint_table = constraint_table[constraint_table[:, 0].argsort()]

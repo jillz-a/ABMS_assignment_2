@@ -11,6 +11,29 @@ import os
 
 
 #Definitions
+def get_heading(heading, xy_start, xy_next):
+    """
+    Function blatantly stolen from the Aircraft class. In case of replanning events, no heading change may be larger
+    than 90 degrees.
+    """
+    if xy_start[0] == xy_next[0]:  # moving up or down
+        if xy_start[1] > xy_next[1]:  # moving down
+            heading = 180
+        elif xy_start[1] < xy_next[1]:  # moving up
+            heading = 0
+        else:
+            heading = heading
+
+    elif xy_start[1] == xy_next[1]:  # moving right or left
+        if xy_start[0] > xy_next[0]:  # moving left
+            heading = 90
+        elif xy_start[0] < xy_next[0]:  # moving right
+            heading = 270
+        else:
+            heading = heading
+    else:
+        raise Exception("Invalid movement")
+    return heading
 
 def get_sum_of_cost(paths):
     rst = 0
@@ -125,7 +148,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             if ac.type == "A":
                 if ac.path_to_goal[0][0] in gate_intersection_dict[ac.goal]['nodes']:
                     blocked_list.append(ac.goal)
-
     boolean = False
     for ac in aircraft_lst:
         if ac.spawntime == t:
@@ -164,6 +186,8 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                                                           t, ac.id, constraints)
 
                 if success:
+                    if t == ac.spawntime:
+                        ac.path = path
                     root['paths'].append(path)
                     root['id'].append(ac.id)
                 else:
@@ -181,12 +205,12 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             if len(P['paths']) >= 2:
                 P['collisions'] = detect_collisions(P['paths'], P['id']) #Check for any collissions in current node
 
-            # print(P['collisions'])
             if len(P['collisions']) == 0 or P['collisions'][0] == None:
                 print("No collisions detected")
                 for ac in aircraft_lst:
                     if ac.id in P['id']:
                         path = P['paths'][P['id'].index(ac.id)]
+                        ac.path = path
                         ac.path_to_goal = path[1:]
                         next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                         ac.from_to = [path[0][0], next_node_id]
@@ -209,11 +233,29 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                         current_node = dict_inverse_nodes[ac.position]["id"]
                         goal_node = ac.goal
                         id = ac.id
+                        heading = ac.heading
+                        old_path = ac.path
+                        path_lst = []
+                        for i in old_path:
+                            if i[0] not in path_lst:
+                                path_lst.append(i[0])
                         break
+                index = path_lst.index(current_node)-1
 
+                # -------------------------------------------------------------------
+                # Als je deze twee lines hieronder comment, dan werkt ie wel maar gaan sommige achteruit.
+                # Deze twee lines voegen een constraint toe, maar zorgen voor een infinite loop..?
+                if index > 0 and len(path_lst) > 5:
+                    Q['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t+0.5})
+                # print(Q['constraints'])
+                # print(Q['constraints'])
+                for x in Q['constraints']:
+                    if x['agent'] == 8 and x['timestep']==8.5:
+                        print(x)
+
+                #         --------------------------------------------------------
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                                           t, id, Q['constraints'])
-
                 if success == True:
                     Q['paths'][Q['id'].index(a_i)] = list(path)
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
