@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 10
-numb_of_aircraft = 4
+numb_of_aircraft = 5
 
 planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted' (only for Prioritized)
@@ -151,8 +151,10 @@ def scorecounter(aircraft_lst): #Calculate score of simulation run
         wait_time.append(aircraft.waiting_time)
 
     avg_wait_time = np.average(wait_time)
+    max_wait_time = max(wait_time)
+    total_wait_time = sum(wait_time)
 
-    score = np.round(avg_wait_time, 4)
+    score = {"total": np.round(total_wait_time, 4), "average": np.round(avg_wait_time, 4), "max": np.round(max_wait_time, 4)}
 
     return score
 
@@ -239,6 +241,7 @@ while running:
     #     ac.spawntime = spawntime + 1
     #     print(ac.spawntime)
 
+#________________________(Random) Aircraft Generation________________________________
     if t==1 and random == True:
         start_nodes_and_time = []
 
@@ -246,7 +249,9 @@ while running:
         for i in range(numb_of_aircraft):
             counter = 0 #if multiple aircraft spawn at same place/time, counter goes up
             arrival_or_departure = rnd.choice(['A', 'D'])
-            spawn_time = rnd.randint(1, simulation_time)
+
+            # spawn_time = rnd.randint(1, simulation_time)
+            spawn_time = round(rnd.normal(loc= simulation_time/2, scale= 2.0)*2) / 2
 
             if arrival_or_departure == 'A':
                 start_node = rnd.choice(arrival_nodes)
@@ -278,14 +283,17 @@ while running:
             aircraft_lst.append(ac)
             start_nodes_and_time.append([start_node, spawn_time])
 
+#_________________________(Manual) Aircraft Generation for Verification________________
     random = True
-    # Spawn aircraft for this timestep (use for example a random process)
+    # Spawn aircraft for this timestep (used for verification purposes).
+    #These aircraft are set to collide at node 14 at t = 5.0
     if t == 1 and random == False:
-        ac = Aircraft(17, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(0, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+        ac = Aircraft(0, 'A', 37,36,t, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
+        ac1 = Aircraft(1, 'D', 36,37,t, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
 
+#_________________________Planner initialisation_________________________________________
     #Do planning 
     if planner == "Independent":
         #(Hint: Think about the condition that triggers (re)planning)
@@ -312,9 +320,8 @@ while running:
     else:
         raise Exception("Planner:", planner, "is not defined.")
 
-    #Record the amount of time an aircraft is standing still
-    if t == 1:
-        from_to_lst = [0]*numb_of_aircraft
+
+
 
     # Move the aircraft that are taxiing
     # for ac in aircraft_lst:
@@ -329,13 +336,22 @@ while running:
         if ac.status == "taxiing":
             ac.move(dt, t)
 
+            if ac.from_to[0] == ac.from_to[1]:
+                ac.waiting_time += dt
+
+
     t = t + dt
-    #Calculate score of planner
-    if t == time_end:
-        score = scorecounter(aircraft_lst)
-        print('Score = ', score)
+
           
 # =============================================================================
 # 2. Implement analysis of output data here
 # =============================================================================
 #what data do you want to show?
+
+    #Calculate score of planner
+    if t == time_end:
+        score = scorecounter(aircraft_lst)
+        print('Score for solver: ', planner)
+        print('Average wait time:', score["average"]," seconds")
+        print('Total wait time:', score["total"], " seconds")
+        print('Maximum wait time:', score["max"], " seconds")
