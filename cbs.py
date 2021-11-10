@@ -111,6 +111,7 @@ def get_location(path, time):
 def push_node(open_list, numb_of_generated, node):
     if node['collisions'] == None:
         node['collisions'] = []
+    print('Nodes generated: ', numb_of_generated)
     heapq.heappush(open_list, (node['cost'], len(node['collisions']), numb_of_generated , node))
 
 def pop_node(open_list):

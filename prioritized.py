@@ -6,7 +6,7 @@ import numpy as np
 import numpy.random as rnd
 
 
-def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, constraints, prioritize_counter):
+def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, constraints, prioritize_counter, N_max_cap):
     """Solves paths by adding constraints based on priority. 3 versions of prioritized solving will be tested:
     - first_come: Priority given to agents who spawned earlier
     - shortest_path: Priority given to agents who have the shortest paths
@@ -93,7 +93,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                     ac.spawntime = ac.spawntime + 0.5
                     success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
                                                               ac.spawntime, ac.id, constraints)
-
+                ac.path = path[1:]
                 ac.path_to_goal = path[1:]
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                 ac.from_to = [path[0][0], next_node_id]
@@ -115,164 +115,11 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
         if ac.spawntime == t:
             ac.status = "taxiing"
             ac.position = nodes_dict[ac.start]["xy_pos"]
+    max_cap = 0
+    for ac in aircraft_lst:
+        if ac.status == 'taxiing':
+            max_cap = max_cap + 1
+    if max_cap > N_max_cap:
+        N_max_cap = max_cap
 
-    return constraints, prioritize_counter, aircraft_lst
-
-# ------------------ Old first come first serve -----------------------------
-
-
-        # for ac in aircraft_lst:
-        #     if ac.spawntime == t:
-        #         ac.status = "taxiing"
-        #         ac.position = nodes_dict[ac.start]["xy_pos"]
-        #         start_node = ac.start
-        #         goal_node = ac.goal
-        #         success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-        #                                                   ac.spawntime, ac.id, constraints)
-        #
-        #         if success:
-        #             while path[0][0] == path[1][0]:
-        #                 # print(ac.id, path[0][0], path[1][0])
-        #                 # print(path)
-        #                 ac.spawntime = ac.spawntime + 0.5
-        #                 success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-        #                                                           ac.spawntime, ac.id, constraints)
-        #             ac.path_to_goal = path[1:]
-        #             next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-        #             ac.from_to = [path[0][0], next_node_id]
-        #             for j in range(len(path) - 1):
-        #                 for i in range(len(aircraft_lst) + prioritize_counter):
-        #                     if not i == ac.id:
-        #                         constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
-        #                         constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]],
-        #                                             'timestep': path[j+1][1]})
-        #
-        #         else:
-        #             # Temporary code in order to remove the node for which no path can be found. This problem occurs
-        #             # when the start node at the gate is already occupied. Therefore, it does not even make sense
-        #             # to start at this node.
-        #             prioritize_counter = prioritize_counter + 1
-        #             aircraft_lst.pop(aircraft_lst.index(ac))
-        #             continue
-                    # raise Exception("No solution found for", ac.id)
-
-# Old shortest path
-#     # Creating an array so we can utilize .argsort()
-#     lst_to_be_sorted = np.array(lst_to_be_sorted)
-#
-#     # Sort array based on second entry of every i in the list.
-#     lst_sorted = lst_to_be_sorted[lst_to_be_sorted[:, 1].argsort()]
-#
-#     # Sort based on the id's of the aircraft.
-#     aircraft_lst_new = []
-#     for element in lst_sorted:
-#         index = element[0]
-#         aircraft_lst_new.append(aircraft_lst[index])
-#
-#     aircraft_lst = aircraft_lst_new
-#
-#     while_counter = 0
-#     while len(aircraft_lst) != while_counter:
-#         ac = aircraft_lst[while_counter]
-#         start_node = ac.start
-#         goal_node = ac.goal
-#         success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-#                                                   ac.spawntime, ac.id, constraints)
-#         if success:
-#
-#             # Part of the code that concerns with the waiting of aircraft at either the gate or runway nodes.
-#             while path[0][0] == path[1][0]:
-#                 # print(ac.id, path[0][0], path[1][0])
-#                 # print(path)
-#                 ac.spawntime = ac.spawntime + 0.5
-#                 success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-#                                                           ac.spawntime, ac.id, constraints)
-#
-#
-#             ac.path_to_goal = path[1:]
-#             next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-#             ac.from_to = [path[0][0], next_node_id]
-#             #print(ac.id, ac.spawntime, ac.from_to)
-#             for j in range(len(path) - 1):
-#                 for i in range(len(aircraft_lst) + prioritize_counter):
-#                     if not i == ac.id:
-#                         constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
-#                         constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]],
-#                                             'timestep': path[j+1][1]})
-#             while_counter = while_counter + 1
-#
-#         else:
-#             # Temporary code in order to remove the node for which no path can be found. This problem occurs
-#             # when the start node at the gate is already occupied. Therefore, it does not even make sense
-#             # to start at this node.
-#             prioritize_counter = prioritize_counter + 1
-#             aircraft_lst.pop(aircraft_lst.index(ac))
-#             continue
-#
-# for ac in aircraft_lst:
-#     if ac.spawntime == t:
-#         ac.status = "taxiing"
-#
-#         #print(nodes_dict[ac.start])
-#         ac.position = nodes_dict[ac.start]["xy_pos"]
-# return constraints, prioritize_counter, aircraft_lst
-
-# Old first come 2
-        #     # Creating an array so we can utilize .argsort()
-        #     lst_to_be_sorted = np.array(lst_to_be_sorted)
-        #
-        #     # Sort array based on second entry of every i in the list.
-        #     lst_sorted = lst_to_be_sorted[lst_to_be_sorted[:, 1].argsort()]
-        #
-        #     # Sort based on the id's of the aircraft.
-        #     aircraft_lst_new = []
-        #     for element in lst_sorted:
-        #         index = element[0]
-        #         aircraft_lst_new.append(aircraft_lst[index])
-        #
-        #     aircraft_lst = aircraft_lst_new
-        #
-        #     while_counter = 0
-        #     while len(aircraft_lst) != while_counter:
-        #         ac = aircraft_lst[while_counter]
-        #         start_node = ac.start
-        #         goal_node = ac.goal
-        #         success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-        #                                                   ac.spawntime, ac.id, constraints)
-        #         if success:
-        #             # Part of the code that concerns with the waiting of aircraft at either the gate or runway nodes.
-        #             while path[0][0] == path[1][0]:
-        #                 # print(ac.id, path[0][0], path[1][0])
-        #                 # print(path)
-        #                 ac.spawntime = ac.spawntime + 0.5
-        #                 success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
-        #                                                           ac.spawntime, ac.id, constraints)
-        #
-        #             ac.path_to_goal = path[1:]
-        #             next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
-        #             ac.from_to = [path[0][0], next_node_id]
-        #             # print(ac.id, ac.spawntime, ac.from_to)
-        #             for j in range(len(path) - 1):
-        #                 for i in range(len(aircraft_lst) + prioritize_counter):
-        #                     if not i == ac.id:
-        #                         constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
-        #                         constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]],
-        #                                             'timestep': path[j + 1][1]})
-        #             while_counter = while_counter + 1
-        #
-        #         else:
-        #             # Temporary code in order to remove the node for which no path can be found. This problem occurs
-        #             # when the start node at the gate is already occupied. Therefore, it does not even make sense
-        #             # to start at this node.
-        #             prioritize_counter = prioritize_counter + 1
-        #             aircraft_lst.pop(aircraft_lst.index(ac))
-        #             continue
-        # for ac in aircraft_lst:
-        #     if ac.spawntime == t:
-        #         ac.status = "taxiing"
-        #         ac.position = nodes_dict[ac.start]["xy_pos"]
-        # return constraints, prioritize_counter, aircraft_lst
-
-
-
-###################################################################
+    return constraints, prioritize_counter, aircraft_lst, N_max_cap
