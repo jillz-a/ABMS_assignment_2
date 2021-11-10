@@ -151,6 +151,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
     boolean = False
     for ac in aircraft_lst:
         if ac.spawntime == t:
+            print('Aircraft ',ac.id,' spawned at t = ', t)
             if ac.start in blocked_list:
                 random_string = rnd.choice(["spawntime", "start_location"])
                 if random_string == "spawntime":
@@ -206,7 +207,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 P['collisions'] = detect_collisions(P['paths'], P['id']) #Check for any collissions in current node
 
             if len(P['collisions']) == 0 or P['collisions'][0] == None:
-                print("No collisions detected")
                 for ac in aircraft_lst:
                     if ac.id in P['id']:
                         path = P['paths'][P['id'].index(ac.id)]

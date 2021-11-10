@@ -115,6 +115,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
     """Independent planner using A* without constraints to generate initial paths"""
     for ac in aircraft_lst:
         if ac.spawntime == t:
+            print('Aircraft ', ac.id, ' spawned at t = ', t)
             constraints[ac.id] = {'constraints': []}
             ac.status = "taxiing"
             start_node = ac.start
@@ -156,23 +157,38 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
 
                     if detect_collisions(paths, id_lst) is not None and len(detect_collisions(paths, id_lst)) > 0:
                         collision = collision[0]
-                        if ac.heading - radar_dict[node]['heading'] == -90 or ac.heading - radar_dict[node]['heading']\
-                                == -270:
+
+                        #If an aircraft comes from the right, it has priority.
+                        if ac.heading - radar_dict[node]['heading'] == -90 or ac.heading - radar_dict[node]['heading'] == -270:
+
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
                             ac.added_constraint = True
                             print('Aircraft', ac.id, 'changed path: A/C came from right.')
 
-                        elif ac.type == 'A':
+
+                        #If aircraft are to collide head on, Departing aircraft has priority.
+                        elif ac.type == 'A' and abs(ac.heading - radar_dict[node]['heading']) == 180 \
+                                and (ac.position[0] == nodes_dict[node]['x_pos'] or ac.position[1] == nodes_dict[node]['y_pos']):
+
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
-
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.from_to[0]],
                                                                       'timestep': collision['timestep'] + 0.5})
 
                             ac.added_constraint = True
                             print('Aircraft', ac.id, 'changed path: Departing A/C has priority.')
-                            print(constraints)
+
+                        else:
+                            constraints[min(id_lst)]['constraints'].append({'agent': min(id_lst), 'node': collision['node'],
+                                                                      'timestep': collision['timestep']})
+                            constraints[min(id_lst)]['constraints'].append({'agent': min(id_lst), 'node': collision['node'][::-1],
+                                                                    'timestep': collision['timestep']})
+
+                            ac.added_constraint = True
+                            print('Aircraft', min(id_lst), 'changed path: Larger id number has priority.')
+
+
 
     for ac in aircraft_lst:
         if ac.added_constraint == True:
