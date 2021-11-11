@@ -13,8 +13,8 @@ depth_of_path = 3       # Defines to which index other a/c get information about
 def box_vision(heading, position, inverse_nodes_dictionary): #defines the nodes that are visible for each individual a/c
     visible_nodes = []
     dE = 1E-12  # Really small value in order to include the ends in the numpy arranges.
-    x_vision = 1    # Vision in the x-direction.
-    y_vision = 1    # Vision in the y-direction.
+    x_vision = 1.5    # Vision in the x-direction.
+    y_vision = 1.5    # Vision in the y-direction.
 
     if heading == 0: # Moving up!
         x_left = position[0] - x_vision
