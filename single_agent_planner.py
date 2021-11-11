@@ -145,6 +145,10 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     earliest_goal_timestep = time_start
     h_value = heuristics[from_node_id][goal_node_id]
     constraint_table = build_constraint_table(constraints, agent)
+    # if agent == 6 and time_start==7:
+    #     print('C_table: ', constraint_table)
+    #     print('Constraints: ', constraints)
+
     root = {'loc': from_node_id, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': time_start}
     push_node(open_list, root)
     closed_list[(root['loc'], root['timestep'])] = root
