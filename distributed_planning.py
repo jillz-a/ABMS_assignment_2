@@ -112,10 +112,58 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
     vision = {}
     # constraints = {}
 
+    """Make sure an aircraft cant spawn when other aircraft is close to the spawn gate."""
+    gate_nodes = [97, 34, 35, 36, 98]
+    gate_block_nodes = [97, 34, 35, 36, 98]
+    gate_intersection_dict = {97: {'nodes': [83, 88, 29, 99]},
+                              34: {'nodes': [88, 84, 89, 30, 92]},
+                              35: {'nodes': [93, 31, 85, 89, 90]},
+                              36: {'nodes': [94, 32, 86, 90, 91]},
+                              98: {'nodes': [100, 33, 91, 87]}}
+
+
+    # Sometimes an aircraft would spawn directly in front of another aircraft at a gate node. This results in the fact
+    # that two aicraft cannot plan their path, since aircraft are prohibited from moving backwards. The code loops
+    # through the active aircraft, and identifies their heading and current position. Aircraft that are currently at a
+    # node from which they cannot go backwards (node in gate_block_nodes) have right of way. In the next for loop,
+    # aircraft that want to spawn at the goal node of the other aircraft receive an update of their spawntime or spawn
+    # location.
+    blocked_list = []
+    for ac in aircraft_lst:
+        if ac.status == "taxiing":
+            dict = {"id": ac.id, "Heading": ac.heading, "Position": ac.path_to_goal[0][0], "Goal_node": ac.goal}
+            if dict["Heading"] == 270 and dict["Position"] in gate_block_nodes:
+                blocked_list.append(ac.goal)
+            if ac.type == "A":
+                if ac.path_to_goal[0][0] in gate_intersection_dict[ac.goal]['nodes']:
+                    blocked_list.append(ac.goal)
+
+    for ac in aircraft_lst:
+        if ac.spawntime == t:
+
+            if ac.start in blocked_list:
+                random_string = np.random.choice(["spawntime", "start_location"])
+                if random_string == "spawntime":
+                    ac.spawntime = ac.spawntime + 0.5
+                if random_string == "start_location":
+                    counter = 0
+                    while ac.start in blocked_list:
+                        ac.start = np.random.choice(gate_nodes)
+                        counter = counter + 1
+                        if counter > 4:
+                            ac.spawntime = ac.spawntime + 0.5
+                            break
+                continue
+            print('Aircraft ', ac.id, ' spawned at t = ', t)
+            # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
+            # replanning.
+            # ac.status = "taxiing"
+            # ac.position = nodes_dict[ac.start]["xy_pos"]
+
     """Independent planner using A* without constraints to generate initial paths"""
     for ac in aircraft_lst:
         if ac.spawntime == t:
-            print('Aircraft ', ac.id, ' spawned at t = ', t)
+            # print('Aircraft ', ac.id, ' spawned at t = ', t)
             constraints[ac.id] = {'constraints': []}
             ac.status = "taxiing"
             start_node = ac.start
@@ -149,8 +197,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
         if ac.status =="taxiing":
             visible_nodes = vision[ac.id]['visible_nodes']
 
-            for node in visible_nodes:
-                if node in radar_dict:
+            for node in visible_nodes: #check every node visible for aircraft
+                if node in radar_dict: #if node in radar dict, then there is an aircraft in the field of view of the aircraft
                     paths = [ac.path_to_goal, radar_dict[node]['path']]
                     id_lst = [ac.id, radar_dict[node]['ac_id']]
 
@@ -171,6 +219,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                                                                       'timestep': collision['timestep']})
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'][::-1],
                                                                       'timestep': collision['timestep']})
+
                             ac.added_constraint = True
                             print('Aircraft', ac.id, 'changed path: A/C came from right.')
 
