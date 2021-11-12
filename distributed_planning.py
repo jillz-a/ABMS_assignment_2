@@ -204,39 +204,47 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                     id_lst = [ac.id, radar_dict[node]['ac_id']]
 
                     attempt_counter = 0 #counts the amount of attempts are needed to generate a path without collisions.
+                    priority = {'right-left': [-90, -270], 'A-D': ['A', 'D'], 'large-small': [min(id_lst), max(id_lst)]}
 
                     while detect_collisions(paths, id_lst) is not None and len(detect_collisions(paths, id_lst)) > 0:
 
                         attempt_counter += 1
-                        if attempt_counter >= 6: #if more than 4 attempts are needed to prevent collision, go to the other agent.
-                            break
+                        if attempt_counter >= 4: #if more than 4 attempts are needed to prevent collision, go to the other agent.
+                            # priority['right-left'].reverse()
+                            # priority['A-D'].reverse()
+                            # priority['large-small'].reverse()
+                            constraints[radar_dict[node]['ac_id']]['constraints'].append({'agent': radar_dict[node]['ac_id'], 'node': collision['node'],
+                                                                      'timestep': collision['timestep']})
+                            constraints[radar_dict[node]['ac_id']]['constraints'].append({'agent': radar_dict[node]['ac_id'], 'node': collision['node'][::-1],
+                                                                      'timestep': collision['timestep']})
+
 
                         collision = detect_collisions(paths, id_lst)[0]
 
                         #If an aircraft comes from the right, it has priority.
-                        if ac.heading - radar_dict[node]['heading'] == -90 or ac.heading - radar_dict[node]['heading'] == -270:
+                        if ac.heading - radar_dict[node]['heading'] == priority['right-left'][0] or\
+                                ac.heading - radar_dict[node]['heading'] == priority['right-left'][1]:
 
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'][::-1],
                                                                       'timestep': collision['timestep']})
-                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
-                                                                      'timestep': t + 0.5})
+
 
                             ac.added_constraint = True
                             print('Aircraft', ac.id, 'changed path: A/C came from right.')
 
 
                         #If aircraft are to collide head on, Departing aircraft has priority.
-                        elif ac.type == 'A' and radar_dict[node]['type'] == 'D' and abs(ac.heading - radar_dict[node]['heading']) == 180 \
+                        elif ac.type == priority['A-D'][0] and radar_dict[node]['type'] == priority['A-D'][1] and abs(ac.heading - radar_dict[node]['heading']) == 180 \
                                 and (ac.position[0] == nodes_dict[node]['x_pos'] or ac.position[1] == nodes_dict[node]['y_pos']):
 
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'][::-1],
                                                                       'timestep': collision['timestep']})
-                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
-                                                                      'timestep': t + 0.5})
+
+
 
 
                             ac.added_constraint = True
@@ -245,15 +253,14 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
 
                         #If none of the above and of same type, then constrain a/c with smallest id.
                         # elif ac.type == radar_dict[node]['type']:
-                        else:
-                            ac_change = np.random.choice(id_lst)
+                        elif ac.type == radar_dict[node]['type']:
+                            ac_change = priority['large-small'][0]
 
                             constraints[ac_change]['constraints'].append({'agent': ac_change, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
                             constraints[ac_change]['constraints'].append({'agent': ac_change, 'node': collision['node'][::-1],
                                                                     'timestep': collision['timestep']})
-                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
-                                                                      'timestep': collision['timestep'] + 0.5})
+
 
                             ac.added_constraint = True
                             print('Aircraft', ac_change, 'changed path: Larger id number has priority.')
@@ -261,16 +268,24 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                         #Generate new path to check if there are no more collisions
                         current_node = inverse_nodes_dictionary[ac.position]['id']
                         goal_node = ac.goal
-                        constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
-                                                                    'timestep': t + 0.5})
+
                         succes, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics, t, ac.id,
                                                                  constraints[ac.id]['constraints'])
+                        # for node_check in path:
+                        #     if ac.last_node == node_check[0]:
+                        #         constraints[ac.id]['constraints'].append(
+                        #             {'agent': ac.id, 'node': [node_check[0]],
+                        #              'timestep': node_check[1]})
+
+
+
                         if succes:
                             ac.path_to_goal = path[1:]
                             paths = [ac.path_to_goal, radar_dict[node]['path']]
 
                             #If new path has no collisions, update the radar_dict with new generated ac path
                             if len(detect_collisions(paths, id_lst)) == 0:
+                                ac.path = path
                                 ac_node = inverse_nodes_dictionary[ac.position]['id']
                                 path = ac.path_to_goal[:depth_of_path]  # portion of path of a/c that will be communicated
 
@@ -279,8 +294,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
 
                                 # Following line adds the visible nodes of the A/C into a dictionary.
                                 vision[ac.id] = {'visible_nodes': box_vision(ac.heading, ac.position, inverse_nodes_dictionary)}
-                        else:
-                            continue
+
 
 
     """Implement new constraints in aircraft paths"""
@@ -288,8 +302,24 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
         if ac.added_constraint == True:
             current_node = inverse_nodes_dictionary[ac.position]['id']
             goal_node = ac.goal
+
+            # old_path = ac.path
+            # path_lst = []
+
+        #     for i in old_path:
+        #         if i[0] not in path_lst:
+        #             path_lst.append(i[0])
+        #     break
+        #
+        #
+        # index = path_lst.index(current_node) - 1
+        #
+        # if index > 0 and len(path_lst) > 1:
+        #     if {'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5} not in constraints[ac.id]['constraints']:
+        #         constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5})
+
             succes, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics, t, ac.id,
-                                                     constraints[ac.id]['constraints'])
+                                                 constraints[ac.id]['constraints'])
             if succes:
                 ac.path_to_goal = path[1:]
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
