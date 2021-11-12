@@ -61,14 +61,15 @@ def detect_collision(path1, path2):
                 if path1[i] == path2[j]:# for vertex collisions
                     first_collision = [path1[i][0], path1[i][1]]
                     return first_collision
+                elif path1[i + 1] == path2[j + 1]:
+                    first_collision = [path1[i + 1][0], path1[i + 1][1]]
+                    return first_collision
 
                 elif path1[i][0] == path2[j + 1][0] and path2[j][0] == path1[i + 1][0] \
                         and path1[i][1] == path2[j][1] and path1[i+1][1] == path2[j+1][1]:  # for edge collisions
                     first_collision = [(path1[i][0], path2[j][0]), path1[i][1]]
                     return first_collision
 
-        if path1[i+1] == path2[j+1]:
-            first_collision = [path1[i+1][0], path1[i+1][1]]
         return first_collision
 
     return first_collision
@@ -207,7 +208,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                     while detect_collisions(paths, id_lst) is not None and len(detect_collisions(paths, id_lst)) > 0:
 
                         attempt_counter += 1
-                        if attempt_counter >= 4: #if more than 4 attempts are needed to prevent collision, go to the other agent.
+                        if attempt_counter >= 6: #if more than 4 attempts are needed to prevent collision, go to the other agent.
                             break
 
                         collision = detect_collisions(paths, id_lst)[0]
@@ -219,6 +220,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                                                                       'timestep': collision['timestep']})
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'][::-1],
                                                                       'timestep': collision['timestep']})
+                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
+                                                                      'timestep': t + 0.5})
 
                             ac.added_constraint = True
                             print('Aircraft', ac.id, 'changed path: A/C came from right.')
@@ -232,6 +235,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                                                                       'timestep': collision['timestep']})
                             constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': collision['node'][::-1],
                                                                       'timestep': collision['timestep']})
+                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
+                                                                      'timestep': t + 0.5})
 
 
                             ac.added_constraint = True
@@ -239,13 +244,16 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
 
 
                         #If none of the above and of same type, then constrain a/c with smallest id.
-                        elif ac.type == radar_dict[node]['type']:
-                            ac_change = max(id_lst)
+                        # elif ac.type == radar_dict[node]['type']:
+                        else:
+                            ac_change = np.random.choice(id_lst)
 
                             constraints[ac_change]['constraints'].append({'agent': ac_change, 'node': collision['node'],
                                                                       'timestep': collision['timestep']})
                             constraints[ac_change]['constraints'].append({'agent': ac_change, 'node': collision['node'][::-1],
                                                                     'timestep': collision['timestep']})
+                            constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
+                                                                      'timestep': collision['timestep'] + 0.5})
 
                             ac.added_constraint = True
                             print('Aircraft', ac_change, 'changed path: Larger id number has priority.')
@@ -253,6 +261,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                         #Generate new path to check if there are no more collisions
                         current_node = inverse_nodes_dictionary[ac.position]['id']
                         goal_node = ac.goal
+                        constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [ac.last_node],
+                                                                    'timestep': t + 0.5})
                         succes, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics, t, ac.id,
                                                                  constraints[ac.id]['constraints'])
                         if succes:
@@ -264,12 +274,13 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                                 ac_node = inverse_nodes_dictionary[ac.position]['id']
                                 path = ac.path_to_goal[:depth_of_path]  # portion of path of a/c that will be communicated
 
-                                # Following line adds the location and path of every agent into a dictionary, basically a radar. Not all
-                                # information about the paths is given, only the next X(depth_of_path) amount of nodes.
+                                #Update radar dict with the new generated path
                                 radar_dict[ac_node] = {'path': path, 'ac_id': ac.id, 'type': ac.type,'heading': ac.heading}
 
                                 # Following line adds the visible nodes of the A/C into a dictionary.
                                 vision[ac.id] = {'visible_nodes': box_vision(ac.heading, ac.position, inverse_nodes_dictionary)}
+                        else:
+                            continue
 
 
     """Implement new constraints in aircraft paths"""

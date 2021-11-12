@@ -289,7 +289,7 @@ while running:
     #These aircraft are set to collide at node 14 at t = 5.0
     if t == 1 and random == False:
         ac = Aircraft(0, 'A', 37,97, 1.0, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(1, 'D', 97,37, 4.0, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+        ac1 = Aircraft(1, 'D', 97,37, 2.5, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
 
