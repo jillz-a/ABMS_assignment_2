@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 20
-numb_of_aircraft = 10
+numb_of_aircraft = 9
 
 planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted' (only for Prioritized)
@@ -203,7 +203,7 @@ escape_pressed = False
 time_end = simulation_time + 5
 dt = 0.1 #should be factor of 0.5 (0.5/dt should be integer)
 t= 0
-random = False #True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
+random = True #True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
 print("Simulation Started")
 while running:
     t= round(t,2)    
@@ -251,7 +251,7 @@ while running:
             arrival_or_departure = rnd.choice(['A', 'D'])
 
             # spawn_time = rnd.randint(1, simulation_time)
-            spawn_time = round(rnd.normal(loc= simulation_time/2, scale= 2.0)*2) / 2
+            spawn_time = round(rnd.normal(loc= simulation_time/2, scale= 2.5)*2) / 2
 
             if arrival_or_departure == 'A':
                 start_node = rnd.choice(arrival_nodes)
@@ -289,7 +289,7 @@ while running:
     #These aircraft are set to collide at node 14 at t = 5.0
     if t == 1 and random == False:
         ac = Aircraft(0, 'A', 37,97, 1.0, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(1, 'D', 97,37, 4.0, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+        ac1 = Aircraft(1, 'D', 97,37, 1.5, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
 
