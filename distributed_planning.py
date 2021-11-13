@@ -9,35 +9,36 @@ import os
 from copy import deepcopy
 #________________________________
 #Definitions and constants
-depth_of_path = 5       # Defines to which index other a/c get information about the a/c's path.
+depth_of_path = 3       # Defines to which index other a/c get information about the a/c's path.
 
 def box_vision(heading, position, inverse_nodes_dictionary): #defines the nodes that are visible for each individual a/c
     visible_nodes = []
     dE = 1E-12  # Really small value in order to include the ends in the numpy arranges.
-    x_vision = 2    # Vision in the x-direction.
-    y_vision = 2    # Vision in the y-direction.
+    x_vision = 1    # Vision in the x-direction.
+    y_vision = 1    # Vision in the y-direction.
+    forward_additional_vision = 0.5 #extra forward visibility
 
     if heading == 0: # Moving up!
         x_left = position[0] - x_vision
         x_right = position[0] + x_vision
-        y_top = position[1] + y_vision
+        y_top = position[1] + y_vision + forward_additional_vision
         y_bot = position[1]
 
     elif heading == 180: # Moving down!
         x_left = position[0] - x_vision
         x_right = position[0] + x_vision
         y_top = position[1]
-        y_bot = position[1] - y_vision
+        y_bot = position[1] - y_vision - forward_additional_vision
 
     elif heading == 90: # Moving left!
-        x_left = position[0] - x_vision
+        x_left = position[0] - x_vision - forward_additional_vision
         x_right = position[0]
         y_top = position[1] + y_vision
         y_bot = position[1] - y_vision
 
     elif heading == 270: # Moving right!
         x_left = position[0]
-        x_right = position[0] + x_vision
+        x_right = position[0] + x_vision + forward_additional_vision
         y_top = position[1] + y_vision
         y_bot = position[1] - y_vision
 
@@ -103,7 +104,7 @@ def detect_collisions(paths, id):
 #________________________________
 #Main solver
 
-def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t, constraints, inverse_nodes_dictionary):
+def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary):
     """
     Distributed planner will first plan each aircraft independently.
     A 'radar' function will be implemented to keep track of aircraft locations.
@@ -213,7 +214,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
                         while detect_collisions(paths, id_lst) is not None and len(detect_collisions(paths, id_lst)) > 0:
 
                             attempt_counter += 1
-                            if attempt_counter >= 8: #if more than 1 attempt is needed to prevent collision, go to the other agent in collision.
+                            if attempt_counter >= 4: #if more than 4 attempts are needed to prevent collision, go to the other agent in collision.
 
                                 constraints[id]['constraints'] = [] #reset the constraints for first agent in collision as they do not prevent collision.
                                 boolean = True
