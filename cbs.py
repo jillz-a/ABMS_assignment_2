@@ -89,8 +89,6 @@ def standard_splitting(collision):
     collision = collision[0]
     if collision == None:
         return []
-    if collision['node'] == [64]:
-        print(collision)
     if len(collision['node']) == 2:
         collision_split = [{'agent': collision['a1'], 'node': [collision['node'][0], collision['node'][1]], 'timestep': collision['timestep']+0.5},
                            {'agent': collision['a2'], 'node': [collision['node'][1], collision['node'][0]], 'timestep': collision['timestep']-0.5}]
@@ -182,44 +180,44 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 'collisions': [],
                 'path_changes': []}
 
-        # for ac in aircraft_lst:
-        #     if ac.status == "taxiing":
-        #         # We do not need start_node since we replan aircraft at their current position.
-        #         goal_node = ac.goal
-        #         current_node = dict_inverse_nodes[ac.position]["id"]
-        #         success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
-        #                                                   t, ac.id, constraints)
-        #
-        #         if success:
-        #             if t == ac.spawntime:
-        #                 ac.path = path
-        #             root['paths'].append(path)
-        #             root['id'].append(ac.id)
-        #         else:
-        #             raise Exception("No solution found for", ac.id)
-
         for ac in aircraft_lst:
-            if ac.status == "taxiing" and t == ac.spawntime:
+            if ac.status == "taxiing":
                 # We do not need start_node since we replan aircraft at their current position.
                 goal_node = ac.goal
                 current_node = dict_inverse_nodes[ac.position]["id"]
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
-                                                          t, ac.id, [])
+                                                          t, ac.id, constraints)
+
                 if success:
-                    ac.path = path
+                    if t == ac.spawntime:
+                        ac.path = path
                     root['paths'].append(path)
                     root['id'].append(ac.id)
                 else:
                     raise Exception("No solution found for", ac.id)
-            if ac.status == 'taxiing' and t != ac.spawntime:
 
-                path = ac.path_to_goal
-                # if dict_inverse_nodes[ac.position]['id'] != path[0][0] and t!=path[0][1]:
-                #     path = [(dict_inverse_nodes[ac.position]['id'], t)] + ac.path_to_goal
-                # if t == 5 and ac.id == 6:
-                #     print(path)
-                root['paths'].append(path)
-                root['id'].append(ac.id)
+        # for ac in aircraft_lst:
+        #     if ac.status == "taxiing" and t == ac.spawntime:
+        #         # We do not need start_node since we replan aircraft at their current position.
+        #         goal_node = ac.goal
+        #         current_node = dict_inverse_nodes[ac.position]["id"]
+        #         success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
+        #                                                   t, ac.id, [])
+        #         if success:
+        #             ac.path = path
+        #             root['paths'].append(path)
+        #             root['id'].append(ac.id)
+        #         else:
+        #             raise Exception("No solution found for", ac.id)
+        #     if ac.status == 'taxiing' and t != ac.spawntime:
+        #
+        #         path = ac.path_to_goal
+        #         # if dict_inverse_nodes[ac.position]['id'] != path[0][0] and t!=path[0][1]:
+        #         #     path = [(dict_inverse_nodes[ac.position]['id'], t)] + ac.path_to_goal
+        #         # if t == 5 and ac.id == 6:
+        #         #     print(path)
+        #         root['paths'].append(path)
+        #         root['id'].append(ac.id)
 
         root['collisions'] = detect_collisions(root['paths'], root['id'])
         root['cost'] = get_sum_of_cost(root['paths'])
@@ -228,27 +226,17 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         while len(open_list) > 0:
 
             P = pop_node(open_list)
-
+            if numb_of_generated > 3000:
+                return False
             if len(P['paths']) >= 2:
                 P['collisions'] = detect_collisions(P['paths'], P['id']) #Check for any collissions in current node
 
             if len(P['collisions']) == 0 or P['collisions'][0] == None:
                 for ac in aircraft_lst:
                     if ac.id in P['id']:
-
                         path = P['paths'][P['id'].index(ac.id)]
-                        # print('First: ', t, ac.path)
-
                         ac.path = path
-                        # if path[0][0] != dict_inverse_nodes[ac.position]['id']:
-                        #     raise Exception
-                        # if dict_inverse_nodes[ac.position]['id'] != path[0][0]:
-                        #     path = [(dict_inverse_nodes[ac.position]['id'], t)] + ac.path_to_goal
                         ac.path_to_goal = path[1:]
-                        if ac.id==6:
-                            print('After: ', t, ac.path_to_goal)
-                            print(dict_inverse_nodes[ac.position]['id'])
-                            print(path)
                         next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                         ac.from_to = [path[0][0], next_node_id]
                 return P['paths']
@@ -302,8 +290,10 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1
+                    if numb_of_generated%500==0:
+                        print(numb_of_generated)
                 else:
-                    statement = False
+                    return False
                     # raise Exception('Error, no path found')
     return constraints, aircraft_lst
 

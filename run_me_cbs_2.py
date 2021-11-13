@@ -17,8 +17,8 @@ from Aircraft import Aircraft
 from independent import run_independent_planner
 from prioritized import run_prioritized_planner
 from distributed_planning import run_distributed_planner
-# from cbs import run_CBS
-from CBS_tres import run_CBS
+from cbs import run_CBS
+# from CBS_tres import run_CBS
 import numpy.random as rnd
 import math
 import time
@@ -344,20 +344,22 @@ def cbs_running(seed, running):
 
 total_result_dict = {}
 counter = 0
-seed = 0
+seed = 7
 while 100>counter:
     if visualization:
         map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
     running = True
-    print(seed)
+    print('Seed: :', seed)
     boolean = cbs_running(seed, running)
     if boolean == False:
         print('Cancelled seed ', seed)
         seed = seed + 1
         continue
-    seed = seed + 1
+
     if type(boolean) == dict:
+        boolean['seed'] = seed
         total_result_dict[counter] = boolean
+    seed = seed + 1
     counter = counter + 1
 
     print(total_result_dict)
@@ -374,6 +376,7 @@ sheet.cell(row=1, column = 4).value = 'Total waiting time [s]'
 sheet.cell(row=1, column = 5).value = 'Average waiting time [s]'
 sheet.cell(row=1, column = 6).value = 'Maximum capacity'
 sheet.cell(row=1, column = 7).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 8).value = 'Seed'
 
 for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 1).value = i+1
@@ -383,4 +386,5 @@ for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Average waiting time']
     sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Max capacity']
     sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i+2, column = 8).value = total_result_dict[i]['seed']
 wb.save("cbs.xlsx")
