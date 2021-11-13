@@ -21,7 +21,7 @@ import numpy.random as rnd
 import math
 
 
-rnd.seed(2)
+rnd.seed(5)
 
 #%% SET SIMULATION PARAMETERS
 #Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
@@ -29,8 +29,8 @@ nodes_file = "nodes.xlsx" #xlsx file with for each node: id, x_pos, y_pos, type
 edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node), length
 
 #Parameters that can be changed:
-simulation_time = 20
-numb_of_aircraft = 9
+simulation_time = 25
+numb_of_aircraft = 12
 
 planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted' (only for Prioritized)
@@ -251,7 +251,7 @@ while running:
             arrival_or_departure = rnd.choice(['A', 'D'])
 
             # spawn_time = rnd.randint(1, simulation_time)
-            spawn_time = round(rnd.normal(loc= simulation_time/2, scale= 2.5)*2) / 2
+            spawn_time = round(rnd.normal(loc= simulation_time/2, scale= 3)*2) / 2
 
             if arrival_or_departure == 'A':
                 start_node = rnd.choice(arrival_nodes)
@@ -286,10 +286,9 @@ while running:
 #_________________________(Manual) Aircraft Generation for Verification________________
 
     # Spawn aircraft for this timestep (used for verification purposes).
-    #These aircraft are set to collide at node 14 at t = 5.0
     if t == 1 and random == False:
-        ac = Aircraft(0, 'A', 37,97, 1.0, nodes_dict) #As an example we will create one aicraft arriving at node 37 with the goal of reaching node 36
-        ac1 = Aircraft(1, 'D', 97,37, 2.5, nodes_dict)#As an example we will create one aicraft arriving at node 36 with the goal of reaching node 37
+        ac = Aircraft(3, 'A', 37,97, 2.0, nodes_dict)
+        ac1 = Aircraft(0, 'A', 38,97, 1.0, nodes_dict)
         aircraft_lst.append(ac)
         aircraft_lst.append(ac1)
 
