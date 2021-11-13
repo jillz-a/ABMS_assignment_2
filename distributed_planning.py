@@ -9,7 +9,7 @@ import os
 from copy import deepcopy
 #________________________________
 #Definitions and constants
-depth_of_path = 3       # Defines to which index other a/c get information about the a/c's path.
+depth_of_path = 5       # Defines to which index other a/c get information about the a/c's path.
 
 def box_vision(heading, position, inverse_nodes_dictionary): #defines the nodes that are visible for each individual a/c
     visible_nodes = []
@@ -304,16 +304,16 @@ def run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t,
             current_node = inverse_nodes_dictionary[ac.position]['id']
             goal_node = ac.goal
 
-            path_lst = []
-
-            for i in ac.path:
-                if i[0] not in path_lst:
-                    path_lst.append(i[0])
-
-            index = path_lst.index(current_node) - 1
-            if index > 0 and len(path_lst) > 1:
-                if {'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5} not in constraints[ac.id]['constraints']:
-                    constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5})
+            # path_lst = []
+            #
+            # for i in ac.path:
+            #     if i[0] not in path_lst:
+            #         path_lst.append(i[0])
+            #
+            # index = path_lst.index(current_node) - 1
+            # if index > 0 and len(path_lst) > 1:
+            #     if {'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5} not in constraints[ac.id]['constraints']:
+            #         constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5})
 
 
             succes, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics, t, ac.id,
