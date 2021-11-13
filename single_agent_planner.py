@@ -6,7 +6,7 @@ Consider functions in this file as supporting functions.
 import heapq
 import networkx as nx
 import numpy as np
-
+import time as timer
 def calc_heuristics(graph, nodes_dict):
     """
     Calculates the exact heuristic dict (shortest distance between two nodes) to be used in A* search.
@@ -135,7 +135,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
         - success = True/False. True if path is found and False is no path is found
         - path = list of tuples with (loc, timestep) pairs -> example [(37, 1), (101, 2)]. Empty list if success == False.
     """
-    
+    time = timer.time()
     from_node_id = from_node
     goal_node_id = goal_node
     time_start = time_start
@@ -152,13 +152,14 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     root = {'loc': from_node_id, 'g_val': 0, 'h_val': h_value, 'parent': None, 'timestep': time_start}
     push_node(open_list, root)
     closed_list[(root['loc'], root['timestep'])] = root
-    while len(open_list) > 0:
+    #print('hier11')
+    while len(open_list) > 0 and timer.time()-time < 10:
         curr = pop_node(open_list)
         # print(get_path(curr))
         if curr['loc'] == goal_node_id and curr['timestep'] >= earliest_goal_timestep:
             return True, get_path(curr)
 
-
+        #print('hier12')
         # Addition of code to account for a waiting step. --------------------------------------------------------------
         child = {'loc': curr['loc'],
                     'g_val': curr['g_val'] + 0.5,
@@ -169,7 +170,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
         if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
             continue
 
-
+        #print('hier13')
         if (child['loc'], child['timestep']) in closed_list:
             existing_node = closed_list[(child['loc'], child['timestep'])]
             if compare_nodes(child, existing_node):
@@ -178,7 +179,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
         else:
             closed_list[(child['loc'], child['timestep'])] = child
             push_node(open_list, child)
-
+        #print('hier14')
         # --------------------------------------------------------------------------------------------------------------
 
         for neighbor in nodes_dict[curr['loc']]["neighbors"]:
@@ -190,14 +191,14 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
 
             if is_constrained(child['parent']['loc'], child['loc'], child['timestep'], constraint_table):
                 continue
-
+            #print('hier15')
             # Code in order to check to prevent the aircraft from going backwards.
             # path = get_path(curr)[-8:]
             path = get_path(curr)
             path = list(dict(path))
             if child['loc'] in path:
                 continue
-
+            #print('hier16')
             if (child['loc'], child['timestep']) in closed_list:
                 existing_node = closed_list[(child['loc'], child['timestep'])]
                 if compare_nodes(child, existing_node):
@@ -207,7 +208,7 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
                 closed_list[(child['loc'], child['timestep'])] = child
                 push_node(open_list, child)
 
-    print("No path found, "+str(len(closed_list))+" nodes visited. Agent: ", agent)
+    # print("No path found, "+str(len(closed_list))+" nodes visited. Agent: ", agent)
     return False, [] # Failed to find solutions
 
 def push_node(open_list, node):

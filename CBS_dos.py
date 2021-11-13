@@ -63,9 +63,10 @@ def detect_collisions(paths, id):
 def standard_splitting(collision):
     if collision == []:
         return []
+
+    collision = collision[0]
     if collision == None:
         return []
-    collision = collision[0]
     if collision['node'] == [64]:
         print(collision)
     if len(collision['node']) == 2:
@@ -165,7 +166,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                                                           t, ac.id, [])
                 if success:
                     if t == ac.spawntime:
-                        ac.path = path
+                        ac.path = path[1:]
                     root['paths'].append(path)
                     root['id'].append(ac.id)
                     ac.attribute = True
@@ -187,10 +188,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             numb_of_expanded += 1
 
             if P['collisions'] == 0 or P['collisions'] == None:
-                print('Ik ben tot hier gekomen')
-                print()
-                print(P['id'])
-                print()
                 for ac in aircraft_lst:
                     if ac.id in P['id']:
                         path = P['paths'][P['id'].index(ac.id)]
@@ -220,7 +217,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                                            t, ac.id, Q['constraints'])
                 if success:
                     Q['paths'][Q['id'].index(a_i)] = list(path)
-                    print(Q['paths'])
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, Q, numb_of_generated)

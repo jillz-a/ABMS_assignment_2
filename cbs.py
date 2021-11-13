@@ -63,12 +63,6 @@ def detect_collisions(paths, id):
     if len(paths) >= 2:
         for agent0 in range(len(paths)):
             for agent1 in range(agent0, len(paths)):
-                # if id[agent0] == 1 and id[agent1] == 6:
-                #     print(id[agent0], paths[agent0])
-                #     print(id[agent1], paths[agent1])
-                # if id[agent0] == 6 and id[agent1] == 1:
-                #     print(id[agent0], paths[agent0])
-                #     print(id[agent1], paths[agent1])
                 if agent0 == agent1:
                     continue
                 else:
@@ -76,7 +70,6 @@ def detect_collisions(paths, id):
                     if len(first_collision) == 0:
                         continue
                     else:
-                        # print('first collision = ', first_collision, type(first_collision[0][0]))
                         if type(first_collision[0]) == tuple:
                             collision_list.append(
                                 {'a1': id[agent0], 'a2': id[agent1], 'node': [first_collision[0][0], first_collision[0][1]],
@@ -89,11 +82,6 @@ def detect_collisions(paths, id):
 
         collision_list.append(None)
         return collision_list
-
-print(detect_collisions([[(20, 7.0), (70.0, 7.5), (19.0, 8.0), (63.0, 8.5), (12.0, 9.0), (56.0, 9.5), (11.0, 10.0), (55.0, 10.5), (10.0, 11.0), (52.0, 11.5), (39.0, 12.0), (48.0, 12.5), (3.0, 13.0), (42.0, 13.5), (40.0, 14.0), (43.0, 14.5), (4.0, 15.0), (95.0, 15.5), (1.0, 16.0)],
-                         [(64, 7.0), (64, 7.5), (64, 8.0), (20.0, 8.5), (71.0, 9.0), (21.0, 9.5), (77.0, 10.0), (27.0, 10.5), (86.0, 11.0), (32.0, 11.5), (94.0, 12.0), (36.0, 12.5)]],
-                        [1,6]))
-
 
 def standard_splitting(collision):
     if collision == []:
@@ -184,10 +172,6 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             ac.status = "taxiing"
             ac.position = nodes_dict[ac.start]["xy_pos"]
             boolean = True
-    if t==9:
-        for ac in aircraft_lst:
-            if ac.spawntime == 9 or ac.id==2:
-                print(ac.id, ac.spawntime, ac.start)
 
     if boolean:
         counter = 0
@@ -222,19 +206,18 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                                           t, ac.id, [])
                 if success:
-                    if t == ac.spawntime:
-                        ac.path = path
+                    ac.path = path
                     root['paths'].append(path)
                     root['id'].append(ac.id)
-                    ac.attribute = False
                 else:
                     raise Exception("No solution found for", ac.id)
             if ac.status == 'taxiing' and t != ac.spawntime:
-                # if ac.id == 6:
-                    # print(dict_inverse_nodes[ac.position]['id'])
-                    # print(t, ac.path_to_goal)
+
                 path = ac.path_to_goal
-                # print(path)
+                # if dict_inverse_nodes[ac.position]['id'] != path[0][0] and t!=path[0][1]:
+                #     path = [(dict_inverse_nodes[ac.position]['id'], t)] + ac.path_to_goal
+                # if t == 5 and ac.id == 6:
+                #     print(path)
                 root['paths'].append(path)
                 root['id'].append(ac.id)
 
@@ -242,40 +225,40 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         root['cost'] = get_sum_of_cost(root['paths'])
         push_node(open_list, numb_of_generated, root)
         numb_of_generated += 1
-        temp_lst = []
         while len(open_list) > 0:
 
             P = pop_node(open_list)
-            temp_lst.append(P)
-            temp_lst = temp_lst[-3:]
-            # print(P['collisions'])
+
             if len(P['paths']) >= 2:
                 P['collisions'] = detect_collisions(P['paths'], P['id']) #Check for any collissions in current node
 
             if len(P['collisions']) == 0 or P['collisions'][0] == None:
                 for ac in aircraft_lst:
                     if ac.id in P['id']:
+
                         path = P['paths'][P['id'].index(ac.id)]
+                        # print('First: ', t, ac.path)
+
                         ac.path = path
-                        # ac.path_to_goal = path[1:]
-                        if ac.id in P['path_changes']:
-                            ac.path_to_goal = path[1:]
-                        else:
-                            ac.path_to_goal = path[1:]
-                        # if ac.id == 6:
-                        #     print(ac.path_to_goal)
+                        # if path[0][0] != dict_inverse_nodes[ac.position]['id']:
+                        #     raise Exception
+                        # if dict_inverse_nodes[ac.position]['id'] != path[0][0]:
+                        #     path = [(dict_inverse_nodes[ac.position]['id'], t)] + ac.path_to_goal
+                        ac.path_to_goal = path[1:]
+                        if ac.id==6:
+                            print('After: ', t, ac.path_to_goal)
+                            print(dict_inverse_nodes[ac.position]['id'])
+                            print(path)
                         next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                         ac.from_to = [path[0][0], next_node_id]
                 return P['paths']
 
 
             collision = P['collisions']
-            # print(collision)
+
             constraints = standard_splitting(collision)
 
             for constraint in constraints:  # Line 12.
-                # if constraint == {'agent': 6, 'node': [64.0], 'timestep': 7.5}:
-                #     continue
                 Q = {'cost': 0, 'constraints': [], 'paths': [], 'collisions': [], 'id': []}  # Line 13, new node Q.
                 Q['path_changes'] = []
                 Q['constraints'] = list(P['constraints'])
@@ -294,30 +277,28 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                         for i in old_path:
                             if i[0] not in path_lst:
                                 path_lst.append(i[0])
-                        # if ac.id==6:
-                        #     print(current_node, path_lst)
                         break
                 index = path_lst.index(current_node)-1
-                # if ac.id == 1:
-                #     print(ac.path_to_goal)
+
+
                 # -------------------------------------------------------------------
                 # Als je deze twee lines hieronder comment, dan werkt ie wel maar gaan sommige achteruit.
                 # Deze twee lines voegen een constraint toe, maar zorgen voor een infinite loop..?
-                if index > 0 and len(path_lst) > 1:
+                if index > 0 and len(path_lst) > 4:
                     if {'agent': ac.id, 'node': [path_lst[index]], 'timestep': t+0.5} not in Q['constraints']:
                         Q['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t+0.5})
 
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                                           t, id, Q['constraints'])
+
+                # if id == 6:
+                #     print('2: ', t, path)
+
                 if success == True:
-                    # if statement == False and ac.id == 6:
-                    #     print(path)
+
                     Q['paths'][Q['id'].index(a_i)] = list(path)
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
                     Q['path_changes'].append(ac.id)
-                    # print()
-                    # print('Q; ', Q['collisions'])
-                    # print()
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, numb_of_generated, Q)
                     numb_of_generated += 1

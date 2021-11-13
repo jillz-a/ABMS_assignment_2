@@ -4,6 +4,7 @@ import numpy.random as rnd
 from single_agent_planner import simple_single_agent_astar # , pop_node, push_node
 import pandas as pd
 import os
+import time as timer
 
 def get_sum_of_cost(paths):
     rst = 0
@@ -69,13 +70,15 @@ def standard_splitting(collision):
     return collision_split
 
 def push_node(open_list, node, num_of_generated):
+    #print('hier7')
     if node['collisions'] == None:
         node['collisions'] = []
     heapq.heappush(open_list, (node['cost'], len(node['collisions']), num_of_generated, node))
 
 def pop_node(open_list):
+    #print('hier8')
     _, _, id, node = heapq.heappop(open_list)
-    print("Expand node {}".format(id))
+    # print("Expand node {}".format(id))
     return node
 
 def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_nodes):
@@ -97,9 +100,8 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
     blocked_list = []
 
     for ac in aircraft_lst:
+        #print('hier6')
         if ac.status == "taxiing":
-
-            print(ac.path_to_goal)
             dict = {"id": ac.id, "Heading": ac.heading, "Position": ac.path_to_goal[0][0], "Goal_node": ac.goal}
             if dict["Heading"] == 270 and dict["Position"] in gate_block_nodes:
                 blocked_list.append(ac.goal)
@@ -109,6 +111,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
     boolean = False
     for ac in aircraft_lst:
+        #print('hier6')
         if ac.spawntime == t:
             if ac.start in blocked_list:
                 random_string = rnd.choice(["spawntime", "start_location"])
@@ -123,12 +126,24 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                             ac.spawntime = ac.spawntime + 0.5
                             break
                 continue
-            print('Aircraft ', ac.id, ' spawned at t = ', t)
+            # print('Aircraft ', ac.id, ' spawned at t = ', t)
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.
             ac.status = "taxiing"
             ac.position = nodes_dict[ac.start]["xy_pos"]
             boolean = True
+
+    for ac in aircraft_lst:
+        if ac.status == "taxiing":
+            if ac.spawntime==t:
+                temp_lst = ac.node_last
+                temp_lst.append(dict_inverse_nodes[ac.position]['id'])
+                ac.node_last = temp_lst
+                # print(t, ac.node_last)
+            # print(t, ac.node_last)
+            if ac.node_last[-1] != dict_inverse_nodes[ac.position]['id'] and ac.spawntime != t:
+                ac.node_last.append(dict_inverse_nodes[ac.position]['id'])
+                ac.node_last = ac.node_last[-2:]
 
     if boolean:
         root = {'cost': 0,
@@ -141,6 +156,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         open_list = []
         for ac in aircraft_lst:
             if ac.status == "taxiing":
+                #print('hier5')
                 active_ac_lst.append(ac.id)
                 # We do not need start_node since we replan aircraft at their current position.
                 goal_node = ac.goal
@@ -159,7 +175,9 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         numb_of_generated += 1
 
         while len(open_list) > 0:
-
+            #print('hier1')
+            if numb_of_generated > 3000:
+                return False
             P = pop_node(open_list)
 
             if len(P['paths']) >= 2:
@@ -172,13 +190,14 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                         ac.path_to_goal = path[1:]
                         next_node_id = ac.path_to_goal[0][0]
                         ac.from_to = [path[0][0], next_node_id]
-                return P['paths']
+                return aircraft_lst
 
             collision = P['collisions']
-            print(P['collisions'])
+            # print(P['collisions'])
             constraints = standard_splitting(collision)
-            print('hi')
+            # print('hi')
             for constraint in constraints:
+                #print('hier2')
                 Q = {'cost': 0,
                      'constraints': [],
                      'paths': P['paths'],
@@ -190,14 +209,22 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
                 for ac in aircraft_lst:
                     if ac.id == a_i:
+                        #print('hier3')
                         goal_node = ac.goal
                         current_node = dict_inverse_nodes[ac.position]["id"]
                         break
+                # if {'agent': ac.id, 'node': [ac.node_last[-2]], 'timestep': t + 0.5} not in Q['constraints'] and ac.spawntime!=t:
+                #     Q['constraints'].append({'agent': ac.id, 'node': [ac.node_last[-2]], 'timestep': t + 0.5})
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                            t, ac.id, Q['constraints'])
                 if success:
+                    #print('hier4')
                     Q['paths'][Q['id'].index(a_i)] = list(path)
                     Q['collisions'] = detect_collisions(Q['paths'], Q['id'])
                     Q['cost'] = get_sum_of_cost(Q['paths'])
                     push_node(open_list, Q, numb_of_generated)
                     numb_of_generated += 1
+                    if numb_of_generated%500==0:
+                        print(numb_of_generated)
+                else:
+                    return False

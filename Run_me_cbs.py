@@ -23,7 +23,7 @@ from CBS_tres import run_CBS
 import numpy.random as rnd
 import math
 
-rnd.seed(3)
+rnd.seed(2)
 
 # %% SET SIMULATION PARAMETERS
 # Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
@@ -38,7 +38,7 @@ priority = 'shortest_path'  # choose between 'first_come', 'shortest_path' or 'w
 
 # Visualization (can also be changed)
 plot_graph = False  # show graph representation in NetworkX
-visualization = False  # pygame visualization
+visualization = True  # pygame visualization
 visualization_speed = 0.1  # set at 0.1 as default
 
 
@@ -306,6 +306,8 @@ while running:
 
     elif planner == "CBS":
         if t == 0:
+            # for ac in aircraft_lst:
+            #     ac.last_node = []
             constraints = []
         if t % 0.5 == 0:
             run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
@@ -324,22 +326,8 @@ while running:
     if t == 1:
         from_to_lst = [0] * numb_of_aircraft
 
-    # Move the aircraft that are taxiing
-    # for ac in aircraft_lst:
-    #     if ac.status == "taxiing":
-    #         ac.move(dt, t)
-    #         if math.modf(t)[0] == 0.5 or math.modf(t)[0] == 0: #correct for run_me and planner time difference
-    #             if ac.from_to == from_to_lst[ac.id]:
-    #                 ac.waiting_time += 1
-    #             from_to_lst[ac.id] = ac.from_to
-
     for ac in aircraft_lst:
         if ac.status == "taxiing":
-            if t%0.5==0:
-                if ac.id==6:
-                    # print(ac.path_to_goal)
-                    # print(ac.from_to)
-                    print(t, inverse_nodes_dictionary[ac.position]['id'])
             ac.move(dt, t)
 
     t = t + dt

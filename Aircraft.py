@@ -24,7 +24,8 @@ class Aircraft(object):
         self.start = start_node   #start_node_id
         self.goal = goal_node     #goal_node_id
         self.nodes_dict = nodes_dict #keep copy of nodes dict
-        
+        self.node_last = []
+        self.locations = []
         #Route related
         self.status = None 
         self.path_to_goal = [] #planned path left from current location
