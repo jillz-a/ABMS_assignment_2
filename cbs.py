@@ -131,7 +131,9 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                               98: {'nodes': [100, 33, 91, 87]}}
     numb_of_generated = 0
     open_list = []
-
+    constraints = []
+    arrival_nodes = {37: {'Boolean': False}, 38: {'Boolean': False}}
+    departure_nodes = {1: {'Boolean': False}, 2: {'Boolean': False}}
     # Sometimes an aircraft would spawn directly in front of another aircraft at a gate node. This results in the fact
     # that two aicraft cannot plan their path, since aircraft are prohibited from moving backwards. The code loops
     # through the active aircraft, and identifies their heading and current position. Aircraft that are currently at a
@@ -154,7 +156,9 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
     boolean = False
     for ac in aircraft_lst:
         if ac.spawntime == t:
-            # print('Aircraft ', ac.id, ' spawned at t = ', t)
+            if ac.start in arrival_nodes and arrival_nodes[ac.start]['Boolean'] == True:
+                ac.spawntime = ac.spawntime + 1
+                continue
             if ac.start in blocked_list:
                 random_string = rnd.choice(["spawntime", "start_location"])
                 if random_string == "spawntime":
@@ -168,15 +172,39 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                             ac.spawntime = ac.spawntime + 0.5
                             break
                 continue
+            if ac.start in arrival_nodes:
+                arrival_nodes[37]['Boolean'] = True
+                arrival_nodes[38]['Boolean'] = True
 
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.
             ac.status = "taxiing"
+            blocked_list.append(ac.start)
             ac.position = nodes_dict[ac.start]["xy_pos"]
             boolean = True
 
+
+    runway_boolean = False
+
+    for ac in aircraft_lst:
+        if len(ac.path_to_goal) == 2:
+            if ac.path_to_goal[1][0] == 1 or ac.path_to_goal[1][0] == 2:
+                runway_boolean = True
+                id_last_aircraft = ac.id
+                break
+
+    if runway_boolean == True:
+        boolean = True
+        for ac in aircraft_lst:
+            if ac.id != id_last_aircraft:
+                constraints.append({'agent': ac.id, 'node': [1], 'timestep': t+1})
+                constraints.append({'agent': ac.id, 'node': [1], 'timestep': t+1.5})
+                constraints.append({'agent': ac.id, 'node': [2], 'timestep': t+1})
+                constraints.append({'agent': ac.id, 'node': [2], 'timestep': t+1.5})
+
     if boolean:
         counter = 0
+
         root = {'cost': 0,
                 'constraints': [],
                 'paths': [],
@@ -186,12 +214,12 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
         for ac in aircraft_lst:
             if ac.status == "taxiing":
+
                 # We do not need start_node since we replan aircraft at their current position.
                 goal_node = ac.goal
                 current_node = dict_inverse_nodes[ac.position]["id"]
                 success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
                                                           t, ac.id, constraints)
-
                 if success:
                     if t == ac.spawntime:
                         ac.path = path
@@ -222,7 +250,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
         #         #     print(path)
         #         root['paths'].append(path)
         #         root['id'].append(ac.id)
-
+        root['constraints'] = constraints
         root['collisions'] = detect_collisions(root['paths'], root['id'])
         root['cost'] = get_sum_of_cost(root['paths'])
         push_node(open_list, numb_of_generated, root)

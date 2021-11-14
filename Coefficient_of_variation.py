@@ -8,7 +8,7 @@ file = "cbs.xlsx"
 
 
 wb = xlrd.open_workbook(file)
-sheet = wb.sheet_by_index(0)
+sheet = wb.sheet_by_index(1)
 
 results = {'Simulation runs': [], 'Total cost': [], 'Total waiting time': [], 'Maximum delay': [],
            'Average waiting time': [], 'Maximum capacity': [], 'CPU-time': []}
@@ -59,6 +59,6 @@ plt.xlabel('Simulation run')
 if string != 'CPU-time':
     string = string.lower()
 plt.ylabel('Coefficient of variation')
-plt.legend()
+plt.legend(loc='lower right')
 plt.grid()
 plt.show()
