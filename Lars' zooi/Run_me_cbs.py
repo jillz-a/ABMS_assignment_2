@@ -21,14 +21,13 @@ from distributed_planning import run_distributed_planner
 # from CBS_dos import run_CBS
 from CBS_tres import run_CBS
 import numpy.random as rnd
-import math
 
 rnd.seed(2)
 
 # %% SET SIMULATION PARAMETERS
 # Input file names (used in import_layout) -> Do not change those unless you want to specify a new layout.
-nodes_file = "nodes.xlsx"  # xlsx file with for each node: id, x_pos, y_pos, type
-edges_file = "edges.xlsx"  # xlsx file with for each edge: from  (node), to (node), length
+nodes_file = "../nodes.xlsx"  # xlsx file with for each node: id, x_pos, y_pos, type
+edges_file = "../edges.xlsx"  # xlsx file with for each edge: from  (node), to (node), length
 
 # Parameters that can be changed:
 simulation_time = 10
@@ -169,7 +168,7 @@ def inverse_nodes_dict():
     computational time.
     Almost all code is copy pasted from create_graph. I adapted it to meet our needs.
     """
-    nodes_file = "nodes.xlsx"
+    nodes_file = "../nodes.xlsx"
     df_nodes = pd.read_excel(os.getcwd() + "/" + nodes_file)
 
     inverse_nodes_dictionary = {}

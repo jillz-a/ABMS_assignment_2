@@ -145,8 +145,6 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     earliest_goal_timestep = time_start
     h_value = heuristics[from_node_id][goal_node_id]
     constraint_table = build_constraint_table(constraints, agent)
-    if agent==23:
-        print(constraint_table)
     # if agent == 6 and time_start==7:
     #     print('C_table: ', constraint_table)
     #     print('Constraints: ', constraints)

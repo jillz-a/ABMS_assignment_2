@@ -14,13 +14,9 @@ import pygame as pg
 from single_agent_planner import calc_heuristics
 from visualization import map_initialization, map_running
 from Aircraft import Aircraft
-from independent import run_independent_planner
-from prioritized import run_prioritized_planner
 from distributed_planning import run_distributed_planner
 # from cbs import run_CBS
-from CBS_tres import run_CBS
 import numpy.random as rnd
-import math
 import time
 from openpyxl import load_workbook
 

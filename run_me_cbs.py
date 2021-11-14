@@ -186,7 +186,7 @@ nodes_dict, edges_dict, start_and_goal_locations = import_layout(nodes_file, edg
 inverse_nodes_dictionary = inverse_nodes_dict()
 graph = create_graph(nodes_dict, edges_dict, plot_graph)
 heuristics = calc_heuristics(graph, nodes_dict)
-visualization = True  # pygame visualization
+visualization = False  # pygame visualization
 
 
 if visualization:
@@ -345,7 +345,7 @@ def cbs_running(seed, running):
 
 total_result_dict = {}
 counter = 0
-seed = 339
+seed = 16
 
 
 while 100>counter:
