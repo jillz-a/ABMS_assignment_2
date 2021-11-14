@@ -197,7 +197,7 @@ if visualization:
 # =============================================================================
 # Parameters that can be changed:
 
-simulation_time = 10
+simulation_time = 30
 numb_of_aircraft = 20
 running = True
 escape_pressed = False
@@ -236,6 +236,7 @@ def cbs_running(seed, running):
                         temp_lst.append(i[0])
                 results['Total waiting time per aircraft'].append(len(ac.locations) - len(temp_lst))
             results['Total cost'] = cost
+            results['Maximum waiting time'] = max(results['Total waiting time per aircraft'])
             results['Total waiting time'] = sum(results['Total waiting time per aircraft'])
             results['Average waiting time'] = round(results['Total waiting time']/len(aircraft_lst), 3)
             results['Number of generated aircraft'] = numb_of_aircraft
@@ -344,7 +345,8 @@ def cbs_running(seed, running):
 
 total_result_dict = {}
 counter = 0
-seed = 7
+seed = 0
+
 while 100>counter:
     if visualization:
         map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
@@ -363,28 +365,30 @@ while 100>counter:
     counter = counter + 1
 
     print(total_result_dict)
-print('For 10 runs it took me: ', timer.time()-timertime)
+print('For 100 runs it took me: ', timer.time()-timertime)
 file = "cbs.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[0]]
+sheet = wb[sheets[1]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
 sheet.cell(row=1, column = 3).value = 'Total cost'
 sheet.cell(row=1, column = 4).value = 'Total waiting time [s]'
-sheet.cell(row=1, column = 5).value = 'Average waiting time [s]'
-sheet.cell(row=1, column = 6).value = 'Maximum capacity'
-sheet.cell(row=1, column = 7).value = 'CPU-time [s]'
-sheet.cell(row=1, column = 8).value = 'Seed'
+sheet.cell(row=1, column = 5).value = 'Maximum delay'
+sheet.cell(row=1, column = 6).value = 'Average waiting time [s]'
+sheet.cell(row=1, column = 7).value = 'Maximum capacity'
+sheet.cell(row=1, column = 8).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 9).value = 'Seed'
 
 for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 1).value = i+1
     sheet.cell(row=i+2, column = 2).value = total_result_dict[i]['Number of ac']
     sheet.cell(row=i+2, column = 3).value = total_result_dict[i]['Total cost']
     sheet.cell(row=i+2, column = 4).value = total_result_dict[i]['Total waiting time']
-    sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Average waiting time']
-    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Max capacity']
-    sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['CPU_Time']
-    sheet.cell(row=i+2, column = 8).value = total_result_dict[i]['seed']
+    sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Maximum waiting time']
+    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Average waiting time']
+    sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['Max capacity']
+    sheet.cell(row=i+2, column = 8).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i+2, column = 9).value = total_result_dict[i]['seed']
 wb.save("cbs.xlsx")

@@ -153,7 +153,9 @@ def simple_single_agent_astar(nodes_dict, from_node, goal_node, heuristics, time
     push_node(open_list, root)
     closed_list[(root['loc'], root['timestep'])] = root
     #print('hier11')
-    while len(open_list) > 0 and timer.time()-time < 10:
+    while len(open_list) > 0:
+        if timer.time()-time > 10:
+            return False, []
         curr = pop_node(open_list)
         # print(get_path(curr))
         if curr['loc'] == goal_node_id and curr['timestep'] >= earliest_goal_timestep:

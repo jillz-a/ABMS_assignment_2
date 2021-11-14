@@ -144,6 +144,10 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
             dict = {"id": ac.id, "Heading": ac.heading, "Position": ac.path_to_goal[0][0], "Goal_node": ac.goal}
             if dict["Heading"] == 270 and dict["Position"] in gate_block_nodes:
                 blocked_list.append(ac.goal)
+            if dict["Heading"] == 0 and dict["Position"] in gate_block_nodes:
+                blocked_list.append(ac.goal)
+            if dict["Heading"] == 180 and dict["Position"] in gate_block_nodes:
+                blocked_list.append(ac.goal)
             if ac.type == "A":
                 if ac.path_to_goal[0][0] in gate_intersection_dict[ac.goal]['nodes']:
                     blocked_list.append(ac.goal)
