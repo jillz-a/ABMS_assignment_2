@@ -137,6 +137,10 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
             dict = {"id": ac.id, "Heading": ac.heading, "Position": ac.path_to_goal[0][0], "Goal_node": ac.goal}
             if dict["Heading"] == 270 and dict["Position"] in gate_block_nodes:
                 blocked_list.append(ac.goal)
+            if dict["Heading"] == 0 and dict["Position"] in gate_block_nodes:
+                blocked_list.append(ac.goal)
+            if dict["Heading"] == 180 and dict["Position"] in gate_block_nodes:
+                blocked_list.append(ac.goal)
             if ac.type == "A":
                 if ac.path_to_goal[0][0] in gate_intersection_dict[ac.goal]['nodes']:
                     blocked_list.append(ac.goal)
@@ -160,8 +164,29 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
             # print('Aircraft ', ac.id, ' spawned at t = ', t)
             # The two lines below trigger the visualisation and correct position of the aircraft. The last line triggers
             # replanning.
-            # ac.status = "taxiing"
-            # ac.position = nodes_dict[ac.start]["xy_pos"]
+            ac.status = "taxiing"
+            blocked_list.append(ac.start)
+            ac.position = nodes_dict[ac.start]["xy_pos"]
+
+    """Separation of departing and arriving aircraft"""
+    runway_boolean = False
+
+    for ac in aircraft_lst:
+        if len(ac.path_to_goal) == 2:
+            if ac.path_to_goal[1][0] == 1 or ac.path_to_goal[1][0] == 2:
+                runway_boolean = True
+                id_last_aircraft = ac.id
+                break
+
+    if runway_boolean == True:
+        for ac in aircraft_lst:
+            if len(ac.path_to_goal) == 2:
+                if ac.id != id_last_aircraft:
+                    constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [1], 'timestep': t+1})
+                    constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [1], 'timestep': t+1.5})
+                    constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [2], 'timestep': t+1})
+                    constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [2], 'timestep': t+1.5})
+
 
     """Independent planner using A* without constraints to generate initial paths"""
     for ac in aircraft_lst:
@@ -182,6 +207,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
                 ac.from_to = [path[0][0], next_node_id]
             else:
                 return False #raise Exception("No solution found for", ac.id)
+
+
 
     """Collision detection and constraint generating for each aircraft"""
     for ac in aircraft_lst:
@@ -251,7 +278,6 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
 
 
                             #If none of the above and of same type, then constrain a/c with smallest id.
-                            # elif ac.type == radar_dict[node]['type']:
                             elif ac.type == radar_dict[node]['type'] and abs(ac.heading - radar_dict[node]['heading']) == 180 \
                                     and (ac.position[0] == nodes_dict[node]['x_pos'] or ac.position[1] == nodes_dict[node]['y_pos']):
 
@@ -308,16 +334,6 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
             current_node = inverse_nodes_dictionary[ac.position]['id']
             goal_node = ac.goal
 
-            # path_lst = []
-            #
-            # for i in ac.path:
-            #     if i[0] not in path_lst:
-            #         path_lst.append(i[0])
-            #
-            # index = path_lst.index(current_node) - 1
-            # if index > 0 and len(path_lst) > 1:
-            #     if {'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5} not in constraints[ac.id]['constraints']:
-            #         constraints[ac.id]['constraints'].append({'agent': ac.id, 'node': [path_lst[index]], 'timestep': t + 0.5})
 
 
             succes, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics, t, ac.id,

@@ -40,6 +40,7 @@ purple = (255, 0, 255)
 blue = (0, 0, 255)
 black = (10, 10, 10)
 white = (255, 255, 255)
+grey = (192, 192, 192)
 lightblue = (173, 216, 230)
 
 #%% Functions
@@ -103,7 +104,7 @@ def map_initialization(nodes_dict, edges_dict):  # function to initialise mapf
     pg.init()  # initialise pygame
     scr = pg.display.set_mode(outer_reso)
     scrrect = scr.get_rect()  # get rectangular area of the surface
-    scr.fill(white)  # set background color
+    scr.fill(grey)  # set background color
 
     plane_pic = pg.image.load(os.getcwd() + "\\blue-plane-hi.bmp")  # get the aircraft image
     plane_pic.set_colorkey(pg.Color(255, 255, 255))  # remove white background to make transparent

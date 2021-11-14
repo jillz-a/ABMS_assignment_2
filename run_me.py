@@ -3,6 +3,9 @@ Run-me.py is the main file of the simulation. Run this file to run the simulatio
 """
 from os import environ
 import os
+
+import seaborn as sns
+
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import numpy as np
 import pandas as pd
@@ -37,7 +40,7 @@ priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'wei
 
 #Visualization (can also be changed)
 plot_graph = False    #show graph representation in NetworkX
-visualization = True        #pygame visualization
+visualization = False        #pygame visualization
 visualization_speed = 0.1 #set at 0.1 as default
 
 #%%Function definitions
@@ -354,3 +357,36 @@ while running:
         print('Average wait time:', score["average"]," seconds")
         print('Total wait time:', score["total"], " seconds")
         print('Maximum wait time:', score["max"], " seconds")
+
+#path heatmap
+
+
+    if t % 0.5 == 0:
+        ac_pos_matrix = np.zeros((13, 15))
+        mat_axes = np.arange(1, 8.5, 0.5).tolist()
+
+        for ac in aircraft_lst:
+            if ac.status == 'taxiing':
+                x_pos = ac.position[0]
+                y_pos = 8 - ac.position[1]
+                mat_x_pos = mat_axes.index(x_pos)
+                mat_y_pos = mat_axes.index(y_pos)
+
+                ac_pos_matrix[mat_y_pos][mat_x_pos] += 1
+
+        label = np.array([['', '', '3', '48', '39', '52', '10', '61', '17', '103', '104', '', '', '', ''],
+                          ['', '', '42', '', '', '', '55', '', '68', '', '105', '', '', '', ''],
+                          ['', '', '40', '', '37', '101', '11', '62', '18', '74', '24', '83', '29', '99', '97'],
+                          ['', '', '43', '', '', '', '56', '', '69', '', '79', '', '88', '', ''],
+                          ['1', '95', '4', '', '38', '102', '12', '63', '19', '75', '25', '84', '30', '92', '34'],
+                          ['', '', '44', '', '', '', '57', '', '70', '', '80', '', '89', '', ''],
+                          ['2', '96', '5', '', '', '', '13', '64', '20', '76', '26', '85', '31', '93', '35'],
+                          ['', '', '45', '', '', '', '58', '', '71', '', '81', '', '90', '', ''],
+                          ['', '', '41', '', '', '', '14', '65', '21', '77', '27', '86', '32', '94', '36'],
+                          ['', '', '46', '', '', '', '59', '', '72', '', '82', '', '91', '', ''],
+                          ['', '', '6', '49', '8', '53', '15', '66', '22', '78', '28', '87', '33', '100', '98'],
+                          ['', '', '47', '', '51', '', '60', '', '73', '', '106', '', '', '', ''],
+                          ['', '', '7', '50', '9', '54', '16', '67', '23', '108', '107', '', '', '', '']])
+
+        sns.heatmap(ac_pos_matrix, annot=label, fmt="", cmap="Greys", vmin=0, xticklabels=False, yticklabels=False)
+        plt.show()

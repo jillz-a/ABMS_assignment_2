@@ -194,7 +194,7 @@ if visualization:
 # Parameters that can be changed:
 
 simulation_time = 30
-numb_of_aircraft = 20
+numb_of_aircraft = 30
 running = True
 escape_pressed = False
 time_end = simulation_time + 5
@@ -372,16 +372,16 @@ print('For 100 runs it took me: ', timer.time()-timertime)
 file = "distributed.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[0]]
+sheet = wb[sheets[1]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
 sheet.cell(row=1, column = 3).value = 'Total cost'
 sheet.cell(row=1, column = 4).value = 'Total waiting time [s]'
 sheet.cell(row=1, column = 5).value = 'Maximum delay'
-sheet.cell(row=1, column = 5).value = 'Average waiting time [s]'
-sheet.cell(row=1, column = 6).value = 'Maximum capacity'
-sheet.cell(row=1, column = 7).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 6).value = 'Average waiting time [s]'
+sheet.cell(row=1, column = 7).value = 'Maximum capacity'
+sheet.cell(row=1, column = 8).value = 'CPU-time [s]'
 sheet.cell(row=1, column = 9).value = 'Seed'
 
 for i in range(len(total_result_dict)):
@@ -389,9 +389,9 @@ for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 2).value = total_result_dict[i]['Number of ac']
     sheet.cell(row=i+2, column = 3).value = total_result_dict[i]['Total cost']
     sheet.cell(row=i+2, column = 4).value = total_result_dict[i]['Total waiting time']
-    sheet.cell(row=i + 2, column=5).value = total_result_dict[i]['Maximum waiting time']
-    sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Average waiting time']
-    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Max capacity']
-    sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['CPU_Time']
-    sheet.cell(row=i + 2, column=9).value = total_result_dict[i]['seed']
+    sheet.cell(row=i+2, column=5).value = total_result_dict[i]['Maximum waiting time']
+    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Average waiting time']
+    sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['Max capacity']
+    sheet.cell(row=i+2, column = 8).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i+2, column=9).value = total_result_dict[i]['seed']
 wb.save(file)
