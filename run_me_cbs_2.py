@@ -186,7 +186,7 @@ nodes_dict, edges_dict, start_and_goal_locations = import_layout(nodes_file, edg
 inverse_nodes_dictionary = inverse_nodes_dict()
 graph = create_graph(nodes_dict, edges_dict, plot_graph)
 heuristics = calc_heuristics(graph, nodes_dict)
-visualization = False  # pygame visualization
+visualization = True  # pygame visualization
 
 
 if visualization:
@@ -198,7 +198,7 @@ if visualization:
 # Parameters that can be changed:
 
 simulation_time = 30
-numb_of_aircraft = 20
+numb_of_aircraft = 40
 running = True
 escape_pressed = False
 time_end = simulation_time + 5
@@ -345,7 +345,8 @@ def cbs_running(seed, running):
 
 total_result_dict = {}
 counter = 0
-seed = 0
+seed = 339
+
 
 while 100>counter:
     if visualization:
@@ -369,7 +370,7 @@ print('For 100 runs it took me: ', timer.time()-timertime)
 file = "cbs.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[1]]
+sheet = wb[sheets[2]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'

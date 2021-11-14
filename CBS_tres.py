@@ -176,7 +176,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
         while len(open_list) > 0:
             #print('hier1')
-            if numb_of_generated > 3000:
+            if numb_of_generated > 10000:
                 return False
             P = pop_node(open_list)
 
