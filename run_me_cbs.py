@@ -198,7 +198,7 @@ if visualization:
 # Parameters that can be changed:
 
 simulation_time = 30
-numb_of_aircraft = 40
+numb_of_aircraft = 20
 running = True
 escape_pressed = False
 time_end = simulation_time + 5
@@ -370,7 +370,7 @@ print('For 100 runs it took me: ', timer.time()-timertime)
 file = "cbs.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[2]]
+sheet = wb[sheets[1]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
