@@ -225,6 +225,10 @@ def distributed_running(seed, running):
         if t >= time_end or escape_pressed:
             running = False
             CPU_Time = timer.time() - start_time
+
+            if CPU_Time > time_end:
+                return False
+
             results['CPU_Time'] = round(CPU_Time, 3)
             cost = 0
             for ac in aircraft_lst:
@@ -363,6 +367,7 @@ while 100>counter:
 
     seed = seed + 1
     if type(boolean) == dict:
+        boolean['seed'] = seed
         total_result_dict[counter] = boolean
     counter = counter + 1
 
@@ -381,6 +386,7 @@ sheet.cell(row=1, column = 5).value = 'Maximum delay'
 sheet.cell(row=1, column = 5).value = 'Average waiting time [s]'
 sheet.cell(row=1, column = 6).value = 'Maximum capacity'
 sheet.cell(row=1, column = 7).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 9).value = 'Seed'
 
 for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 1).value = i+1
@@ -391,4 +397,5 @@ for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Average waiting time']
     sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Max capacity']
     sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i + 2, column=9).value = total_result_dict[i]['seed']
 wb.save(file)
