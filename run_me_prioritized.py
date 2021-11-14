@@ -196,8 +196,8 @@ if visualization:
 # =============================================================================
 # Parameters that can be changed:
 
-simulation_time = 10
-numb_of_aircraft = 15
+simulation_time = 30
+numb_of_aircraft = 40
 running = True
 escape_pressed = False
 time_end = simulation_time + 5
@@ -206,7 +206,7 @@ t = 0
 random = True  # True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
 
 planner = "Prioritized"  # choose which planner to use (prioritized, CBS, Distributed)
-priority = 'shortest_path'  # choose between 'first_come', 'shortest_path' or 'weighted'
+priority = 'weighted'  # choose between 'first_come', 'shortest_path' or 'weighted'
 
 
 def prio_running(seed, running):
@@ -224,25 +224,24 @@ def prio_running(seed, running):
             # Gather results
             CPU_Time = timer.time() - start_time
             results['CPU_Time'] = round(CPU_Time, 3)
+            cost = 0
             for ac in aircraft_lst:
                 # results['Paths'].append(ac.path)
                 temp_lst = []
-                for i in ac.path:
+                cost = cost + len(ac.locations)
+                for i in ac.locations:
                     if i[0] not in temp_lst:
                         temp_lst.append(i[0])
-                results['Total waiting time per aircraft'].append(len(ac.path) - len(temp_lst))
+                results['Total waiting time per aircraft'].append(len(ac.locations) - len(temp_lst))
+            results['Total cost'] = round(cost + (numb_of_aircraft - len(aircraft_lst))*(cost/len(aircraft_lst)), 0)
+            results['Maximum waiting time'] = max(results['Total waiting time per aircraft'])
             results['Total waiting time'] = sum(results['Total waiting time per aircraft'])
-            results['Average waiting time'] = round(results['Total waiting time']/len(aircraft_lst), 3)
+            results['Average waiting time'] = round(results['Total waiting time'] / len(aircraft_lst), 3)
             results['Number of generated aircraft'] = numb_of_aircraft
             results['Simulation time'] = simulation_time
             results['Number of ac'] = len(aircraft_lst)
             results['Max capacity'] = N_max_cap
-            # results = {'Max capacity': {},  # Key: t
-            #            'Paths': [],  # Paths of all a/c
-            #            'Total waiting time': 0,
-            #            'Number of ac': 0,
-            #            'CPU_Time': 0}  # }
-
+            print(results)
 
 
             running = False
@@ -344,8 +343,9 @@ def prio_running(seed, running):
 
         for ac in aircraft_lst:
             if ac.status == "taxiing":
+                if t%0.5==0:
+                    ac.locations.append((inverse_nodes_dictionary[ac.position]['id'], t))
                 ac.move(dt, t)
-
         t = t + dt
         # Calculate score of planner
         if t == time_end:
@@ -356,6 +356,7 @@ total_result_dict = {}
 for i in range(100):
     print(i)
     result_dict = prio_running(i, running)
+    result_dict['seed'] = i
     total_result_dict[i] = result_dict
 print(total_result_dict)
 # =============================================================================
@@ -363,32 +364,30 @@ print(total_result_dict)
 # =============================================================================
 # what data do you want to show?
 
-priority = 'shortest_path'  # choose between 'first_come', 'shortest_path' or 'weighted'
-if priority == 'shortest_path':
-    index = 0
-elif priority == 'first_come':
-    index = 1
-elif priority == 'weighted':
-    index = 2
-else:
-    index = 0
 
 file = "prioritized.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[index]]
+sheet = wb[sheets[4]]
+
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
-sheet.cell(row=1, column = 3).value = 'Total waiting time [s]'
-sheet.cell(row=1, column = 4).value = 'Average waiting time [s]'
-sheet.cell(row=1, column = 5).value = 'Maximum capacity'
-sheet.cell(row=1, column = 6).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 3).value = 'Total cost'
+sheet.cell(row=1, column = 4).value = 'Total waiting time [s]'
+sheet.cell(row=1, column = 5).value = 'Maximum delay'
+sheet.cell(row=1, column = 6).value = 'Average waiting time [s]'
+sheet.cell(row=1, column = 7).value = 'Maximum capacity'
+sheet.cell(row=1, column = 8).value = 'CPU-time [s]'
+sheet.cell(row=1, column = 9).value = 'Seed'
 
 for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 1).value = i+1
     sheet.cell(row=i+2, column = 2).value = total_result_dict[i]['Number of ac']
-    sheet.cell(row=i+2, column = 3).value = total_result_dict[i]['Total waiting time']
-    sheet.cell(row=i+2, column = 4).value = total_result_dict[i]['Average waiting time']
-    sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Max capacity']
-    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i+2, column = 3).value = total_result_dict[i]['Total cost']
+    sheet.cell(row=i+2, column = 4).value = total_result_dict[i]['Total waiting time']
+    sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Maximum waiting time']
+    sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Average waiting time']
+    sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['Max capacity']
+    sheet.cell(row=i+2, column = 8).value = total_result_dict[i]['CPU_Time']
+    sheet.cell(row=i+2, column = 9).value = total_result_dict[i]['seed']
 wb.save("prioritized.xlsx")

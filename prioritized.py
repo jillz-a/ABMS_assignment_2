@@ -102,6 +102,19 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                         if not i == ac.id:
                             constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
                             constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]], 'timestep': path[j+1][1]})
+
+                for i in range(len(aircraft_lst) + prioritize_counter):
+                    if path[-1][0] == 1 or path[-1][0] == 2:
+                        if not i == ac.id:
+                            constraints.append({'agent': i, 'node': [1], 'timestep': path[-1][1]})
+                            constraints.append({'agent': i, 'node': [2], 'timestep': path[-1][1]})
+
+                for i in range(len(aircraft_lst) + prioritize_counter):
+                    if path[0][0] == 37 or path[0][0] == 38:
+                        if not i == ac.id:
+                            constraints.append({'agent': i, 'node': [37], 'timestep': path[0][1]})
+                            constraints.append({'agent': i, 'node': [38], 'timestep': path[0][1]})
+
                 while_counter = while_counter + 1
             else:
                 # Temporary code in order to remove the node for which no path can be found. This problem occurs
