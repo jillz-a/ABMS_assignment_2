@@ -181,7 +181,7 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                 ac.from_to = [path[0][0], next_node_id]
             else:
-                raise Exception("No solution found for", ac.id)
+                return False #raise Exception("No solution found for", ac.id)
 
     """Collision detection and constraint generating for each aircraft"""
     for ac in aircraft_lst:
@@ -326,6 +326,8 @@ def run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints
                 ac.path_to_goal = path[1:]
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                 ac.from_to = [path[0][0], next_node_id]
+            else:
+                return False
 
 
 
