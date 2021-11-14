@@ -30,7 +30,7 @@ edges_file = "edges.xlsx" #xlsx file with for each edge: from  (node), to (node)
 
 #Parameters that can be changed:
 simulation_time = 25
-numb_of_aircraft = 10
+numb_of_aircraft = 15
 
 planner = "Distributed" #choose which planner to use (prioritized, CBS, Distributed)
 priority = 'shortest_path' #choose between 'first_come', 'shortest_path' or 'weighted' (only for Prioritized)
@@ -314,7 +314,7 @@ while running:
         if t == 0:
             constraints = {}
         if t%0.5==0:
-            run_distributed_planner(aircraft_lst, nodes_dict, edges_dict, heuristics, t, constraints, inverse_nodes_dictionary)
+            run_distributed_planner(aircraft_lst, nodes_dict, heuristics, t, constraints, inverse_nodes_dictionary)
 
     else:
         raise Exception("Planner:", planner, "is not defined.")
