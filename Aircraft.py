@@ -63,8 +63,9 @@ class Aircraft(object):
                 heading = 270
             else:
                 heading=self.heading
-        else: 
-            raise Exception("Invalid movement")
+        else:
+            return False
+            # raise Exception("Invalid movement")
     
         self.heading = heading
       

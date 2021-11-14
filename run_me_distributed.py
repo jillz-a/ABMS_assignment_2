@@ -197,8 +197,8 @@ if visualization:
 # =============================================================================
 # Parameters that can be changed:
 
-simulation_time = 20
-numb_of_aircraft = 15
+simulation_time = 30
+numb_of_aircraft = 20
 running = True
 escape_pressed = False
 time_end = simulation_time + 5
@@ -236,6 +236,7 @@ def distributed_running(seed, running):
                         temp_lst.append(i[0])
                 results['Total waiting time per aircraft'].append(len(ac.locations) - len(temp_lst))
             results['Total cost'] = cost
+            results['Maximum waiting time'] = max(results['Total waiting time per aircraft'])
             results['Total waiting time'] = sum(results['Total waiting time per aircraft'])
             results['Average waiting time'] = round(results['Total waiting time']/len(aircraft_lst), 3)
             results['Number of generated aircraft'] = numb_of_aircraft
@@ -345,23 +346,28 @@ def distributed_running(seed, running):
 total_result_dict = {}
 counter = 0
 seed = 0
+cancelled_seeds = [] #[0, 1, 2, 3, 4, 5, 6, 15, 16, 17, 30, 32, 33, 39, 40, 42, 50, 53, 57, 58, 60, 61, 63, 65, 67, 74, 75, 77, 81, 82, 85, 87, 91, 92, 93, 100, 101, 108, 116, 118, 131]
 while 100>counter:
     if visualization:
         map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
     running = True
+    if cancelled_seeds.count(seed) >= 1:
+        seed = seed + 1
+        continue
     print(seed)
     boolean = distributed_running(seed, running)
     if boolean == False:
         print('Cancelled seed ', seed)
         seed = seed + 1
         continue
+
     seed = seed + 1
     if type(boolean) == dict:
         total_result_dict[counter] = boolean
     counter = counter + 1
 
     print(total_result_dict)
-print('For 10 runs it took me: ', timer.time()-timertime)
+print('For 100 runs it took me: ', timer.time()-timertime)
 file = "distributed.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
@@ -371,6 +377,7 @@ sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
 sheet.cell(row=1, column = 3).value = 'Total cost'
 sheet.cell(row=1, column = 4).value = 'Total waiting time [s]'
+sheet.cell(row=1, column = 5).value = 'Maximum delay'
 sheet.cell(row=1, column = 5).value = 'Average waiting time [s]'
 sheet.cell(row=1, column = 6).value = 'Maximum capacity'
 sheet.cell(row=1, column = 7).value = 'CPU-time [s]'
@@ -380,7 +387,8 @@ for i in range(len(total_result_dict)):
     sheet.cell(row=i+2, column = 2).value = total_result_dict[i]['Number of ac']
     sheet.cell(row=i+2, column = 3).value = total_result_dict[i]['Total cost']
     sheet.cell(row=i+2, column = 4).value = total_result_dict[i]['Total waiting time']
+    sheet.cell(row=i + 2, column=5).value = total_result_dict[i]['Maximum waiting time']
     sheet.cell(row=i+2, column = 5).value = total_result_dict[i]['Average waiting time']
     sheet.cell(row=i+2, column = 6).value = total_result_dict[i]['Max capacity']
     sheet.cell(row=i+2, column = 7).value = total_result_dict[i]['CPU_Time']
-wb.save("distributed.xlsx")
+wb.save(file)
