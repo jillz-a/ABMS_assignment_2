@@ -77,7 +77,7 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
             aircraft_lst_new.append(aircraft_lst[index])
 
         aircraft_lst = aircraft_lst_new
-
+        cost = 0
         while_counter = 0
         while len(aircraft_lst) != while_counter:
             ac = aircraft_lst[while_counter]
@@ -88,8 +88,6 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
             if success:
                 # Part of the code that concerns with the waiting of aircraft at either the gate or runway nodes.
                 while path[0][0] == path[1][0]:
-                    # print(ac.id, path[0][0], path[1][0])
-                    # print(path)
                     ac.spawntime = ac.spawntime + 0.5
                     success, path = simple_single_agent_astar(nodes_dict, start_node, goal_node, heuristics,
                                                               ac.spawntime, ac.id, constraints)
@@ -97,18 +95,22 @@ def run_prioritized_planner(aircraft_lst, nodes_dict, heuristics, t, priority, c
                 ac.path_to_goal = path[1:]
                 next_node_id = ac.path_to_goal[0][0]  # next node is first node in path_to_goal
                 ac.from_to = [path[0][0], next_node_id]
+
+                # Apply constraints along the path for all agents.
                 for j in range(len(path) - 1):
                     for i in range(len(aircraft_lst) + prioritize_counter):
                         if not i == ac.id:
                             constraints.append({'agent': i, 'node': [path[j][0]], 'timestep': path[j][1]})
                             constraints.append({'agent': i, 'node': [path[j + 1][0], path[j][0]], 'timestep': path[j+1][1]})
 
+                # Apply departure runway constraints
                 for i in range(len(aircraft_lst) + prioritize_counter):
                     if path[-1][0] == 1 or path[-1][0] == 2:
                         if not i == ac.id:
                             constraints.append({'agent': i, 'node': [1], 'timestep': path[-1][1]})
                             constraints.append({'agent': i, 'node': [2], 'timestep': path[-1][1]})
 
+                # Apply arrival runway constraints.
                 for i in range(len(aircraft_lst) + prioritize_counter):
                     if path[0][0] == 37 or path[0][0] == 38:
                         if not i == ac.id:

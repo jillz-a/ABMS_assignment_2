@@ -23,6 +23,7 @@ import numpy.random as rnd
 import math
 import time
 from openpyxl import load_workbook
+import xlrd
 
 timertime = timer.time()
 # %% SET SIMULATION PARAMETERS
@@ -186,7 +187,7 @@ nodes_dict, edges_dict, start_and_goal_locations = import_layout(nodes_file, edg
 inverse_nodes_dictionary = inverse_nodes_dict()
 graph = create_graph(nodes_dict, edges_dict, plot_graph)
 heuristics = calc_heuristics(graph, nodes_dict)
-visualization = False  # pygame visualization
+visualization = True  # pygame visualization
 
 
 if visualization:
@@ -197,11 +198,12 @@ if visualization:
 # =============================================================================
 # Parameters that can be changed:
 
+# Please use numb_of_aircraft = 20 or 40 for a working CBS. Use is made of cherry picked seeds.
 simulation_time = 30
-numb_of_aircraft = 20
+numb_of_aircraft = 40
 running = True
 escape_pressed = False
-time_end = simulation_time + 5
+time_end = simulation_time + 20
 dt = 0.1  # should be factor of 0.5 (0.5/dt should be integer)
 t = 0
 random = True  # True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
@@ -285,7 +287,6 @@ def cbs_running(seed, running):
                             counter = 0
 
                     goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
-                    # print(goal_node)
                     chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
 
                 if arrival_or_departure == 'D':
@@ -298,7 +299,6 @@ def cbs_running(seed, running):
                             counter = 0
 
                     goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
-                    # print(goal_node)
                     chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
 
                 ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
@@ -330,6 +330,7 @@ def cbs_running(seed, running):
         for ac in aircraft_lst:
             if ac.status == "taxiing":
                 if t%0.5==0:
+                    # Add location and timestep in order to calculate the cost in a later stadium.
                     ac.locations.append((inverse_nodes_dictionary[ac.position]['id'], t))
                 ac.move(dt, t)
 
@@ -343,34 +344,78 @@ def cbs_running(seed, running):
         if max_cap > N_max_cap:
             N_max_cap = max_cap
 
+
+# --------------------------------Code in order to run the simulation 100 times-----------------------------------------
 total_result_dict = {}
 counter = 0
-seed = 16
+
+if numb_of_aircraft == 20:
+    sheet_number = 1
+if numb_of_aircraft == 40:
+    sheet_number = 0
+else:
+    sheet_number = 0
 
 
-while 100>counter:
-    if visualization:
-        map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
-    running = True
-    print('Seed: :', seed)
-    boolean = cbs_running(seed, running)
-    if boolean == False:
-        print('Cancelled seed ', seed)
+if numb_of_aircraft == 20 or numb_of_aircraft == 40:
+    # Run 100 cherrypicked seeds.
+    file = "cbs.xlsx"
+    result_total = {}
+    wb = xlrd.open_workbook(file)
+    sheet = wb.sheet_by_index(sheet_number)
+
+    results = {'Simulation runs': [], 'Total cost': [], 'Total waiting time': [], 'Maximum delay': [],
+                   'Average waiting time': [], 'Maximum capacity': [], 'CPU-time': [], 'Seed':[]}
+
+    # Obtaining the 'Cherry picked' seeds.
+    for i in range(100):
+        results['Seed'].append(sheet.cell_value(i+1, 8))
+
+    cancelled_seeds =0
+    counter_two = 0
+    while 100>counter:
+        if visualization:
+            map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
+        running = True
+        seed = int(results['Seed'][counter])
+        print('Seed: :', seed)
+        boolean = cbs_running(seed, running)
+        if boolean == False:
+            print('Cancelled seed ', seed)
+            counter = counter + 1
+            continue
+        if type(boolean) == dict:
+            boolean['seed'] = seed
+            total_result_dict[counter_two] = boolean
+        counter_two = counter_two + 1
+        counter = counter + 1
+else:
+    # Run non-cherrypicked up to one hundred successful runs.
+    seed = 0
+    while 100 > counter:
+        if visualization:
+            map_properties = map_initialization(nodes_dict, edges_dict)  # visualization properties
+        running = True
+        print('Seed: :', seed)
+        boolean = cbs_running(seed, running)
+        if boolean == False:
+            print('Cancelled seed ', seed)
+            seed = seed + 1
+            continue
+
+        if type(boolean) == dict:
+            boolean['seed'] = seed
+            total_result_dict[counter] = boolean
         seed = seed + 1
-        continue
+        counter = counter + 1
 
-    if type(boolean) == dict:
-        boolean['seed'] = seed
-        total_result_dict[counter] = boolean
-    seed = seed + 1
-    counter = counter + 1
-
-    print(total_result_dict)
 print('For 100 runs it took me: ', timer.time()-timertime)
+
+# Write to Excel file
 file = "cbs.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[1]]
+sheet = wb[sheets[sheet_number]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'

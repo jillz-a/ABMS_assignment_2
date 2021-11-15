@@ -22,6 +22,7 @@ import numpy.random as rnd
 import math
 import time
 from openpyxl import load_workbook
+import xlrd
 
 
 # %% SET SIMULATION PARAMETERS
@@ -197,16 +198,16 @@ if visualization:
 # Parameters that can be changed:
 
 simulation_time = 30
-numb_of_aircraft = 20
+numb_of_aircraft = 40
 running = True
 escape_pressed = False
-time_end = simulation_time + 5
+time_end = simulation_time + 20
 dt = 0.1  # should be factor of 0.5 (0.5/dt should be integer)
 t = 0
 random = True  # True uses randomly generated aircraft, False generates 2 aircraft which collide at t = 5.0
 
 planner = "Prioritized"  # choose which planner to use (prioritized, CBS, Distributed)
-priority = 'weighted'  # choose between 'first_come', 'shortest_path' or 'weighted'
+priority = 'shortest_path'  # choose between 'first_come', 'shortest_path' or 'weighted'
 
 
 def prio_running(seed, running):
@@ -233,7 +234,7 @@ def prio_running(seed, running):
                     if i[0] not in temp_lst:
                         temp_lst.append(i[0])
                 results['Total waiting time per aircraft'].append(len(ac.locations) - len(temp_lst))
-            results['Total cost'] = round(cost + (numb_of_aircraft - len(aircraft_lst))*(cost/len(aircraft_lst)), 0)
+            results['Total cost'] = round(cost) # + round((numb_of_aircraft - len(aircraft_lst))*(cost/len(aircraft_lst)), 0)
             results['Maximum waiting time'] = max(results['Total waiting time per aircraft'])
             results['Total waiting time'] = sum(results['Total waiting time per aircraft'])
             results['Average waiting time'] = round(results['Total waiting time'] / len(aircraft_lst), 3)
@@ -241,7 +242,6 @@ def prio_running(seed, running):
             results['Simulation time'] = simulation_time
             results['Number of ac'] = len(aircraft_lst)
             results['Max capacity'] = N_max_cap
-            print(results)
 
 
             running = False
@@ -353,10 +353,31 @@ def prio_running(seed, running):
             # print('Score = ', score)
 
 total_result_dict = {}
+file = "cbs.xlsx"
+result_total = {}
+wb = xlrd.open_workbook(file)
+sheet = wb.sheet_by_index(0)
+
+results = {'Simulation runs': [], 'Total cost': [], 'Total waiting time': [], 'Maximum delay': [],
+               'Average waiting time': [], 'Maximum capacity': [], 'CPU-time': [], 'Seed':[]}
+
 for i in range(100):
-    print(i)
-    result_dict = prio_running(i, running)
-    result_dict['seed'] = i
+    results['Simulation runs'].append(sheet.cell_value(i+1,0))
+    results['Total cost'].append(sheet.cell_value(i+1,2))
+    results['Total waiting time'].append(sheet.cell_value(i+1,3))
+    results['Maximum delay'].append(sheet.cell_value(i+1,4))
+    results['Average waiting time'].append(sheet.cell_value(i+1,5))
+    results['Maximum capacity'].append(sheet.cell_value(i+1,6))
+    results['CPU-time'].append(sheet.cell_value(i+1, 7))
+    results['Seed'].append(sheet.cell_value(i+1, 8))
+    print(results['Seed'])
+    result_total[i] = results
+
+for i in range(len(results['Seed'])):
+    seed = int(results['Seed'][i])
+    print('Seed: ', seed)
+    result_dict = prio_running(seed, running)
+    result_dict['seed'] = results['Seed'][i]
     total_result_dict[i] = result_dict
 print(total_result_dict)
 # =============================================================================
@@ -368,7 +389,7 @@ print(total_result_dict)
 file = "prioritized.xlsx"
 wb = load_workbook(file)
 sheets = wb.sheetnames
-sheet = wb[sheets[5]]
+sheet = wb[sheets[7]]
 
 sheet.cell(row=1, column = 1).value = 'Simulation run'
 sheet.cell(row=1, column = 2).value = 'Numb. of generated aircraft'
