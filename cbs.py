@@ -290,7 +290,7 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
 
             # In case the nodes expanded goes over 30000, then abandon this seed. This is done in order to get 100 runs
             # within a reasonable amount of time.
-            if numb_of_generated > 30000:
+            if numb_of_generated > 100000:
                 return False
 
             if len(P['paths']) >= 2:

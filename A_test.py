@@ -91,9 +91,9 @@ def VD_A_DF(data, val_col: str = None, group_col: str = None, sort=True):
     })
 
 
-file = "distributed.xlsx"
+file = "A-test-total.xlsx"
 result_total = {}
-sheets = [0, 1]
+sheets = [4, 5]
 for j in range(len(sheets)):
     wb = xlrd.open_workbook(file)
     sheet = wb.sheet_by_index(sheets[j])
@@ -115,3 +115,4 @@ print(VD_A(treatment=result_total[0]['Total waiting time'], control=result_total
 print(VD_A(treatment=result_total[0]['Maximum delay'], control=result_total[1]['Maximum delay']))
 print(VD_A(treatment=result_total[0]['Average waiting time'], control=result_total[1]['Average waiting time']))
 print(VD_A(treatment=result_total[0]['Maximum capacity'], control=result_total[1]['Maximum capacity']))
+print(VD_A(treatment=result_total[0]['CPU-time'], control=result_total[1]['CPU-time']))
