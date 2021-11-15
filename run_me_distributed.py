@@ -285,7 +285,6 @@ def distributed_running(seed, running):
                             counter = 0
 
                     goal_node = gate_nodes[chosen_gate_nodes.index(min(chosen_gate_nodes))]
-                    # print(goal_node)
                     chosen_gate_nodes[gate_nodes.index(goal_node)] += 1
 
                 if arrival_or_departure == 'D':
@@ -298,7 +297,6 @@ def distributed_running(seed, running):
                             counter = 0
 
                     goal_node = departure_nodes[chosen_departure_nodes.index(min(chosen_departure_nodes))]
-                    # print(goal_node)
                     chosen_departure_nodes[departure_nodes.index(goal_node)] += 1
 
                 ac = Aircraft(i, arrival_or_departure, start_node, goal_node, spawn_time, nodes_dict)
