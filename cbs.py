@@ -258,6 +258,24 @@ def run_CBS(aircraft_lst, nodes_dict, heuristics, t, constraints, dict_inverse_n
                 else:
                     raise Exception("No solution found for", ac.id)
 
+        # for ac in aircraft_lst:
+        #     if ac.status == "taxiing" and t == ac.spawntime:
+        #         # We do not need start_node since we replan aircraft at their current position.
+        #         goal_node = ac.goal
+        #         current_node = dict_inverse_nodes[ac.position]["id"]
+        #         success, path = simple_single_agent_astar(nodes_dict, current_node, goal_node, heuristics,
+        #                                                   t, ac.id, [])
+        #         if success:
+        #             ac.path = path
+        #             root['paths'].append(path)
+        #             root['id'].append(ac.id)
+        #         else:
+        #             raise Exception("No solution found for", ac.id)
+        #     if ac.status == 'taxiing' and t != ac.spawntime:
+        #
+        #         path = ac.path_to_goal
+        #         root['paths'].append(path)
+        #         root['id'].append(ac.id)
 
         root['constraints'] = constraints
         root['collisions'] = detect_collisions(root['paths'], root['id'])
