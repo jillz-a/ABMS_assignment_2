@@ -91,9 +91,9 @@ def VD_A_DF(data, val_col: str = None, group_col: str = None, sort=True):
     })
 
 
-file = "prioritized.xlsx"
+file = "distributed.xlsx"
 result_total = {}
-sheets = [3, 5]
+sheets = [0, 1]
 for j in range(len(sheets)):
     wb = xlrd.open_workbook(file)
     sheet = wb.sheet_by_index(sheets[j])

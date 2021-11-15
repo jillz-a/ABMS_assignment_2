@@ -9,7 +9,7 @@ file = "distributed.xlsx"
 
 
 wb = xlrd.open_workbook(file)
-sheet = wb.sheet_by_index(0)
+sheet = wb.sheet_by_index(1)
 
 results = {'Simulation runs': [], 'Total cost': [], 'Total waiting time': [], 'Maximum delay': [],
            'Average waiting time': [], 'Maximum capacity': [], 'CPU-time': []}
@@ -62,5 +62,5 @@ if string != 'CPU-time':
 plt.ylabel('Coefficient of variation')
 plt.legend(loc='lower right')
 plt.grid()
-matplotlib2tikz.save('CoV-Distributed.tex')
+matplotlib2tikz.save('CoV-Distributed-high.tex')
 plt.show()
