@@ -37,7 +37,7 @@ def VD_A(treatment: List[float], control: List[float]):
     A = (2 * r1 - m * (m + 1)) / (2 * n * m)  # equivalent formula to avoid accuracy errors
 
     levels = [0.147, 0.33, 0.474]  # effect sizes from Hess and Kromrey, 2004
-    magnitude = ["negligible", "small", "medium", "large"]
+    magnitude = ["N", "S", "M", "L"]
     scaled_A = (A - 0.5) * 2
 
     magnitude = magnitude[bisect_left(levels, abs(scaled_A))]
@@ -91,11 +91,12 @@ def VD_A_DF(data, val_col: str = None, group_col: str = None, sort=True):
     })
 
 
-file = "cbs.xlsx"
+file = "prioritized.xlsx"
 result_total = {}
-for j in range(3):
+sheets = [3, 5]
+for j in range(len(sheets)):
     wb = xlrd.open_workbook(file)
-    sheet = wb.sheet_by_index(j)
+    sheet = wb.sheet_by_index(sheets[j])
 
     results = {'Simulation runs': [], 'Total cost': [], 'Total waiting time': [], 'Maximum delay': [],
                'Average waiting time': [], 'Maximum capacity': [], 'CPU-time': []}
@@ -109,6 +110,8 @@ for j in range(3):
         results['Maximum capacity'].append(sheet.cell_value(i+1,6))
         results['CPU-time'].append(sheet.cell_value(i+1, 7))
     result_total[j] = results
-
+print(VD_A(treatment=result_total[0]['Total cost'], control=result_total[1]['Total cost']))
+print(VD_A(treatment=result_total[0]['Total waiting time'], control=result_total[1]['Total waiting time']))
+print(VD_A(treatment=result_total[0]['Maximum delay'], control=result_total[1]['Maximum delay']))
 print(VD_A(treatment=result_total[0]['Average waiting time'], control=result_total[1]['Average waiting time']))
-
+print(VD_A(treatment=result_total[0]['Maximum capacity'], control=result_total[1]['Maximum capacity']))
