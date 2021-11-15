@@ -43,6 +43,9 @@ plot_graph = False    #show graph representation in NetworkX
 visualization = False        #pygame visualization
 visualization_speed = 0.1 #set at 0.1 as default
 
+#Used for analysis
+ac_pos_matrix = np.zeros((13, 15))
+
 #%%Function definitions
 def import_layout(nodes_file, edges_file):
     """
@@ -360,11 +363,9 @@ while running:
 
 #path heatmap
 
+    mat_axes = np.arange(1, 8.5, 0.5).tolist()
 
     if t % 0.5 == 0:
-        ac_pos_matrix = np.zeros((13, 15))
-        mat_axes = np.arange(1, 8.5, 0.5).tolist()
-
         for ac in aircraft_lst:
             if ac.status == 'taxiing':
                 x_pos = ac.position[0]
